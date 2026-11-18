@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Models and checkpoints (avoid committing large binary weights if desired, but best_judgebert.pt is ~88MB)
+models/*.pt
+models/ood_tenancy/
+experiments/scratch/
+
+# Environment / local cache
+.venv/
+env/
+.cache/
+*.log

@@ -61,6 +61,7 @@ def run_experiment_1(test_df, predictor, baselines_df):
     
     # 2. Evaluate JUDGEBERT
     judgebert_df = predictor.predict_df(test_df)
+    judgebert_df["pred_decision"] = judgebert_df["judgebert_pred_decision"]
     res_judgebert = evaluate_predictions(judgebert_df, pred_score_col="judgebert_pred_score")
     results["JUDGEBERT"] = res_judgebert["overall"]
     
@@ -70,9 +71,21 @@ def run_experiment_1(test_df, predictor, baselines_df):
     for model_name, m in results.items():
         print(f"{model_name:<20} | {m['pearson_r']:<10.4f} | {m['spearman_rho']:<12.4f} | {m['rmse']:<8.4f} | {m['mae']:<8.4f} | {m['accuracy']:<8.4f} | {m['macro_f1']:<8.4f}")
         
+    print("\n" + "="*70)
+    print("STRATIFIED EVALUATION BY LEGAL DOMAIN (JUDGEBERT)")
+    print("="*70)
+    by_dom = res_judgebert.get("by_domain", {})
+    for dom_name, m in by_dom.items():
+        print(f"Domain: {dom_name.upper():<22} | Pearson r: {m['pearson_r']:<8.4f} | Spearman: {m['spearman_rho']:<8.4f} | RMSE: {m['rmse']:<8.4f} | Accuracy: {m['accuracy']:<8.4f}")
+
     os.makedirs("experiments/results", exist_ok=True)
+    results_payload = {
+        "overall": results,
+        "by_domain": by_dom,
+        "by_language": res_judgebert.get("by_language", {})
+    }
     with open("experiments/results/exp1_baselines_vs_judgebert.json", "w") as f:
-        json.dump(results, f, indent=2)
+        json.dump(results_payload, f, indent=2)
         
     return results, judgebert_df
 
@@ -120,12 +133,13 @@ def run_experiment_3(df_all, base_model):
         val_path="experiments/scratch/test_consumer.csv",
         output_dir="models/ood_tenancy",
         base_model=base_model,
-        epochs=4,
+        epochs=3,
         batch_size=8
     )
     
     ood_predictor = JudgeBertPredictor(model_path=ood_model_path, base_model_name=base_model)
     ood_preds = ood_predictor.predict_df(test_consumer)
+    ood_preds["pred_decision"] = ood_preds["judgebert_pred_decision"]
     ood_res = evaluate_predictions(ood_preds, pred_score_col="judgebert_pred_score")
     
     print("\nOut-of-Domain Evaluation Results (Zero-Shot Consumer Law Transfer):")

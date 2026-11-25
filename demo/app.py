@@ -4,6 +4,7 @@ Multilingual Legal Meaning Preservation (LMP) using JUDGEBERT
 """
 
 import os
+os.environ["USE_TF"] = "0"
 os.environ["HF_HOME"] = os.path.expanduser("~/.cache/huggingface")
 os.environ["HF_HUB_CACHE"] = os.path.expanduser("~/.cache/huggingface/hub")
 import sys
@@ -87,6 +88,18 @@ PRESET_EXAMPLES = {
         "simplified": "कंपनियों को उपभोक्ताओं को लुभाने के लिए झूठे और भ्रामक विज्ञापन देने की पूरी आजादी है।",
         "lang": "hi",
         "domain": "consumer_protection"
+    },
+    "Hindi: Labor Law Bonus Obligation Preserved (Valid Simplification)": {
+        "orig": "प्रत्येक नियोजक प्रत्येक लेखा वर्ष के संबंध में प्रत्येक कर्मचारी को न्यूनतम बोनस का संदाय करेगा जो कर्मचारी द्वारा उस लेखा वर्ष के दौरान अर्जित वेतन या मजदूरी का 8.33 प्रतिशत होगा।",
+        "simp": "मालिक को हर साल हर पात्र कर्मचारी को सालाना वेतन का कम से कम 8.33 प्रतिशत न्यूनतम बोनस के रूप में अनिवार्य रूप से देना होगा।",
+        "lang": "hi",
+        "domain": "employment_labor"
+    },
+    "English: Labor Law Gratuity Entity Swap (Employer -> Employee)": {
+        "orig": "The employer shall arrange to pay the amount of gratuity within thirty days from the date it becomes payable to the person to whom the gratuity is payable.",
+        "simp": "Employees are required to pay gratuity to the employer within 30 days of resigning.",
+        "lang": "en",
+        "domain": "employment_labor"
     },
     "Sanity: Identical Pair (Verbatim Match)": {
         "orig": "The Lessee covenants to keep the exterior walls, roof, and structural foundations in sound repair.",
@@ -172,17 +185,23 @@ with tabs[0]:
 with tabs[1]:
     st.subheader("Experiment 1: Generic Baselines vs. JUDGEBERT-based LMP Prediction")
     if os.path.exists("experiments/results/exp1_baselines_vs_judgebert.json"):
-        with open("experiments/results/exp1_baselines_vs_judgebert.json") as f:
+        with open("experiments/results/exp1_baselines_vs_judgebert.json", encoding="utf-8") as f:
             e1 = json.load(f)
-        df_e1 = pd.DataFrame(e1).T
-        st.dataframe(df_e1[["pearson_r", "spearman_rho", "rmse", "mae", "accuracy", "macro_f1"]].style.highlight_max(subset=["pearson_r", "spearman_rho", "accuracy", "macro_f1"], color="#bbf7d0").highlight_min(subset=["rmse", "mae"], color="#bbf7d0"))
+        overall_data = e1.get("overall", e1)
+        df_e1 = pd.DataFrame(overall_data).T
+        cols = ["pearson_r", "spearman_rho", "rmse", "mae", "accuracy", "macro_f1"]
+        st.dataframe(df_e1[cols].style.highlight_max(subset=["pearson_r", "spearman_rho", "accuracy", "macro_f1"], color="#bbf7d0").highlight_min(subset=["rmse", "mae"], color="#bbf7d0"))
+        if "by_domain" in e1:
+            st.markdown("#### Stratified Domain Breakdown (JUDGEBERT)")
+            df_dom = pd.DataFrame(e1["by_domain"]).T
+            st.dataframe(df_dom[cols].style.highlight_max(subset=["pearson_r", "spearman_rho", "accuracy", "macro_f1"], color="#bbf7d0"))
     else:
         st.info("Run `python experiments/run_all_experiments.py` to populate live experiment tables.")
 
 with tabs[2]:
     st.subheader("Experiment 2: Cross-Lingual Evaluation (English vs. Hindi)")
     if os.path.exists("experiments/results/exp2_multilingual_en_hi.json"):
-        with open("experiments/results/exp2_multilingual_en_hi.json") as f:
+        with open("experiments/results/exp2_multilingual_en_hi.json", encoding="utf-8") as f:
             e2 = json.load(f)
         df_e2 = pd.DataFrame(e2).T
         st.dataframe(df_e2[["pearson_r", "spearman_rho", "rmse", "mae", "accuracy", "macro_f1"]])
@@ -192,7 +211,7 @@ with tabs[2]:
 with tabs[3]:
     st.subheader("Experiment 3: Out-of-Domain Generalization (Tenancy -> Consumer Law)")
     if os.path.exists("experiments/results/exp3_domain_generalization.json"):
-        with open("experiments/results/exp3_domain_generalization.json") as f:
+        with open("experiments/results/exp3_domain_generalization.json", encoding="utf-8") as f:
             e3 = json.load(f)
         st.json(e3)
     else:
@@ -201,7 +220,7 @@ with tabs[3]:
 with tabs[4]:
     st.subheader("Experiment 4: Sanity Checks on Identical & Unrelated Sentence Pairs")
     if os.path.exists("experiments/results/exp4_sanity_checks.json"):
-        with open("experiments/results/exp4_sanity_checks.json") as f:
+        with open("experiments/results/exp4_sanity_checks.json", encoding="utf-8") as f:
             e4 = json.load(f)
         st.json(e4)
     else:
@@ -210,7 +229,7 @@ with tabs[4]:
 with tabs[5]:
     st.subheader("Experiment 5: Qualitative Error Analysis of 16 Legally Difficult Cases")
     if os.path.exists("experiments/results/exp5_error_analysis_15cases.csv"):
-        df_e5 = pd.read_csv("experiments/results/exp5_error_analysis_15cases.csv")
+        df_e5 = pd.read_csv("experiments/results/exp5_error_analysis_15cases.csv", encoding="utf-8")
         st.dataframe(df_e5[["case_id", "language", "error_category", "ground_truth_lmp", "sbert_score", "judgebert_score", "judgebert_decision", "explanation"]])
     else:
         st.info("Live data will appear here upon completion of Experiment 5.")

@@ -92,16 +92,16 @@ The dataset is partitioned into Stratified Train ($N=2,013$, 74.7% — augmented
 |                        JUDGEBERT Cross-Encoder Model                         |
 |                                                                               |
 |  [CLS] S_orig [SEP] S_simp [SEP] ---> Transformer Backbone (Cross-Attention)  |
-|                                                    |                          |
-|                                             [CLS] Token                       |
+|  (with Phonetic Hindi Normalization)               |                          |
+|                                     Hybrid Pooling: 0.5*[CLS] + 0.5*Mean      |
 |                                                    |                          |
 |                                       Dense Projection + GELU                 |
 |                                                    |                          |
 |                    +-------------------------------+--------------------+     |
 |                    |                               |                    |     |
 |             Regression Head                 Decision Head          Error Head |
-|          1.0 + 9.0 * Sigmoid(w^T h)        Softmax(W_c h)         Softmax(W_e)|
-|              LMP: [1.0, 10.0]              3-Way Decision           9 Classes |
+|          1.0 + 9.0 * Sigmoid(w^T h)   Softmax(W_c h) + Calib.     Softmax(W_e)|
+|              LMP: [1.0, 10.0]              3-Way Decision          10 Classes |
 +-------------------------------------------------------------------------------+
 ```
 
@@ -111,11 +111,15 @@ $$\mathbf{X} = [\text{[CLS]}, w_{1}^{orig}, \dots, w_{m}^{orig}, \text{[SEP]}, w
 To prevent `all-MiniLM-L6-v2`'s uncased WordPiece tokenizer from stripping Devanagari vowel matras (`ु, े, ो, ं, ्`) and collapsing legal words such as *"ऐच्छिक"* (`optional`) into `[UNK]` (originally affecting $92.4\%$ of Hindi test pairs), a deterministic lossless Devanagari-to-Latin phonetic transducer maps Unicode block `\u0900–\u097F` into clean Latin subwords prior to encoding (`0.0%` `[UNK]` rate). Furthermore, to align with MiniLM's contrastive pretraining while retaining global cross-attention context across $256$-token pairs, we combine the `[CLS]` vector and attention-masked mean pooling:
 $$\mathbf{h}_{pool} = 0.5\,\mathbf{h}_{[\text{CLS}]} + 0.5\,\mathbf{h}_{\text{mean}}$$
 
-### B. Multi-Task Bounded Loss Formulation
+### B. Multi-Task Bounded Loss & Dual-Head Inference Calibration
 To strictly enforce predictions within the valid human scoring range $[1.0, 10.0]$, the continuous prediction is bounded via a scaled sigmoid activation:
 $$\hat{y}_{LMP} = 1.0 + 9.0 \times \sigma(\mathbf{w}_{reg}^T \mathbf{h} + b_{reg})$$
 The overall sample-weighted objective combines Huber regression loss, tempered inverse-frequency class-weighted categorical cross-entropy ($(N/(K \cdot N_c))^{0.65}$ to solve *Partially Preserved* underfitting), dual-head ordinal consistency $\mathcal{L}_{cons}$, and per-sample $1.5\times$ Hindi gradient weighting ($w_{lang} = 1.0 + 0.5 \cdot \mathbb{I}_{hi}$):
 $$\mathcal{L} = \mathbb{E}\left[ w_{lang} \cdot \left( \mathcal{L}_{Huber} + 0.85\,\mathcal{L}_{CE}^{dec} + 0.50\,\mathcal{L}_{CE}^{err} + 0.35\,\mathcal{L}_{cons} \right) \right]$$
+At inference time, a dual-head calibration gate harmonizes the continuous regression score $\hat{y}_{LMP}$ with the 3-way softmax probabilities $\mathbf{p}_{dec}$ (mapping $[4.0, 8.0)$ scores with $p_{\text{partial}} > 0.28$ to *Partially Preserved*, and harmonizing $[1.0, 4.0)$ / $[8.0, 10.0]$ boundaries with threshold $0.35$), preventing score-label contradictions.
+
+### C. Rule-Guided Legal Explainability Engine
+Alongside JUDGEBERT's neural score and category predictions, a deterministic diagnostic overlay (`analyze_legal_discrepancy`) inspects raw original and simplified clauses in English and Hindi across five statutory dimensions: (1) regex extraction of numbers, percentages, and ordinals (*dates/timelines*); (2) bilingual negation polarity comparison (`not`/`cannot` vs. `नहीं`/`वर्जित`); (3) deontic modality lexicons (`shall`/`must` $\to$ `may` and `करेगा`/`अनिवार्य` $\to$ `सकता है`/`चाहे तो`); (4) conditional/exception markers (`unless`/`provided that` and `सिवाय`/`बशर्ते`); and (5) party-role swaps (`landlord`/`tenant`, `employer`/`employee`, `consumer`/`manufacturer`) to synthesize human-interpretable penalty explanations.
 
 ---
 

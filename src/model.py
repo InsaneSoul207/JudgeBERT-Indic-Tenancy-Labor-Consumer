@@ -136,8 +136,17 @@ class JudgeBertPredictor:
         with torch.no_grad():
             outs = self.model(input_ids, attention_mask, token_type_ids)
             score = outs["pred_lmp"].item()
+            dec_probs = torch.softmax(outs["decision_logits"], dim=-1).squeeze(0).cpu().numpy()
             dec_idx = torch.argmax(outs["decision_logits"], dim=-1).item()
             err_idx = torch.argmax(outs["error_logits"], dim=-1).item()
+
+        # Dual-head calibration: harmonic resolution between continuous LMP score and decision head
+        if 4.0 <= score < 8.0 and dec_probs[1] > 0.20:
+            dec_idx = 1
+        elif score >= 8.0 and dec_probs[2] > 0.30:
+            dec_idx = 2
+        elif score < 4.0 and dec_probs[0] > 0.30:
+            dec_idx = 0
 
         dec_str = REV_DECISION_MAP.get(dec_idx, "Not Preserved")
         err_str = REV_ERROR_MAP.get(err_idx, "none")
@@ -148,16 +157,55 @@ class JudgeBertPredictor:
             "error_category": err_str if dec_str != "Preserved" else "none"
         }
 
-    def predict_df(self, df):
-        """Batch prediction over a DataFrame containing 'original' and 'simplified'."""
+    def predict_df(self, df, batch_size=16):
+        """Efficient batch prediction over a DataFrame containing 'original' and 'simplified'."""
+        origs = df["original"].astype(str).tolist()
+        simps = df["simplified"].astype(str).tolist()
+        n = len(origs)
+        
         scores, decisions, error_cats = [], [], []
         
-        for _, row in df.iterrows():
-            res = self.predict_pair(row["original"], row["simplified"])
-            scores.append(res["lmp_score"])
-            decisions.append(res["decision"])
-            error_cats.append(res["error_category"])
+        for i in range(0, n, batch_size):
+            batch_orig = origs[i:i + batch_size]
+            batch_simp = simps[i:i + batch_size]
             
+            inputs = self.tokenizer(
+                batch_orig,
+                batch_simp,
+                padding=True,
+                truncation=True,
+                max_length=256,
+                return_tensors="pt"
+            )
+            input_ids = inputs["input_ids"].to(self.device)
+            attention_mask = inputs["attention_mask"].to(self.device)
+            token_type_ids = inputs.get("token_type_ids")
+            if token_type_ids is not None:
+                token_type_ids = token_type_ids.to(self.device)
+                
+            with torch.no_grad():
+                outs = self.model(input_ids, attention_mask, token_type_ids)
+                b_scores = outs["pred_lmp"].cpu().numpy().tolist()
+                b_probs = torch.softmax(outs["decision_logits"], dim=-1).cpu().numpy()
+                b_dec_idx = torch.argmax(outs["decision_logits"], dim=-1).cpu().numpy().tolist()
+                b_err_idx = torch.argmax(outs["error_logits"], dim=-1).cpu().numpy().tolist()
+                
+            for sc, probs, d_idx, e_idx in zip(b_scores, b_probs, b_dec_idx, b_err_idx):
+                # Dual-head calibration
+                if 4.0 <= sc < 8.0 and probs[1] > 0.20:
+                    d_idx = 1
+                elif sc >= 8.0 and probs[2] > 0.30:
+                    d_idx = 2
+                elif sc < 4.0 and probs[0] > 0.30:
+                    d_idx = 0
+                    
+                dec_str = REV_DECISION_MAP.get(d_idx, "Not Preserved")
+                err_str = REV_ERROR_MAP.get(e_idx, "none")
+                
+                scores.append(round(sc, 2))
+                decisions.append(dec_str)
+                error_cats.append(err_str if dec_str != "Preserved" else "none")
+                
         res_df = df.copy()
         res_df["judgebert_pred_score"] = scores
         res_df["judgebert_pred_decision"] = decisions

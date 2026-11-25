@@ -1,4 +1,5 @@
-# Explainable Multilingual Legal Meaning Preservation Using JUDGEBERT (PJ_08)
+# JudgeBERT-Indic-Tenancy-Labor-Consumer
+### Explainable Multilingual Legal Meaning Preservation Using JUDGEBERT (PJ_08)
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
@@ -25,7 +26,7 @@ Legal text simplification aims to make complex legal provisions intelligible to 
 
 Generic semantic similarity metrics (BLEU, ROUGE, SBERT) notoriously fail on legal texts because substituting a single modal verb (e.g., *"shall"* $\to$ *"may"*), dropping an exception (e.g., *"unless otherwise agreed"*), or altering an operative date produces high surface/embedding similarity while drastically subverting legal enforceability.
 
-This project extends the **JUDGEBERT** cross-encoder regression paradigm from French property-damage insurance contracts to a **multilingual (English + Hindi)** framework across **Tenancy Law** and **Consumer Protection Law**, accompanied by an **explainable diagnostic engine**.
+This project extends the **JUDGEBERT** cross-encoder regression paradigm from French property-damage insurance contracts to a **multilingual (English + Hindi)** framework across **Tenancy Law**, **Employment, Labor & Contract Law**, and **Consumer Protection Law**, accompanied by an **explainable diagnostic engine**.
 
 ---
 

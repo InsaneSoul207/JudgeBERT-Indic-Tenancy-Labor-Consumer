@@ -886,11 +886,10 @@ def build_multidomain_dataset():
     # 4. Systematic Legal Expansion for Consumer & Labor to scale up towards >= 2,500 pairs
     expanded_rows = []
     
-    # Process Consumer and Labor preserved rows to create comprehensive variants
-    non_tenancy = df_current[df_current["domain"] != "tenancy"]
-    preserved_non_tenancy = non_tenancy[non_tenancy["decision"] == "Preserved"]
+    # Process all preserved rows across domains to create comprehensive balanced variants
+    preserved_all = df_current[df_current["decision"] == "Preserved"]
 
-    for _, r in preserved_non_tenancy.iterrows():
+    for _, r in preserved_all.iterrows():
         dom = r["domain"]
         lang = r["language"]
         orig = r["original"]
@@ -1021,20 +1020,49 @@ def build_multidomain_dataset():
                         "explanation": "Critical prerequisite or legal condition removed."
                     })
 
-            # Omission
-            if " and " in simp and len(simp) > 70:
-                trunc = simp.split(" and ")[0] + "."
-                if len(trunc) > 30 and trunc != simp:
+            # Omission of secondary clause / qualification (Partially Preserved)
+            for sep in [" and ", ", including ", ", such as ", ", provided ", ", unless ", ", subject to ", " but "]:
+                if sep in simp and len(simp) > 50:
+                    trunc = simp.split(sep)[0].strip().rstrip(",") + "."
+                    if len(trunc) > 28 and trunc != simp and trunc != orig:
+                        expanded_rows.append({
+                            "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
+                            "language": "en",
+                            "domain": dom,
+                            "original": orig,
+                            "simplified": trunc,
+                            "lmp_score": 5.8,
+                            "decision": "Partially Preserved",
+                            "error_category": "omission",
+                            "explanation": f"Core statutory mandate preserved but secondary qualifier '{sep.strip()}' omitted."
+                        })
+                        break
+
+            # Scope / Timeline dilution (Partially Preserved)
+            if any(w in simp.lower() for w in ["30 days", "14 days", "60 days", "5 years", "48 hours", "10 lakh"]):
+                diluted = simp
+                for sw, tw in [
+                    ("within 30 days", "within a reasonable period"),
+                    ("within thirty days", "in due course"),
+                    ("14 days", "a few days"),
+                    ("fourteen days", "short notice"),
+                    ("60 days", "advance notice"),
+                    ("five years", "several years"),
+                    ("48 hours", "reasonable hours"),
+                    ("10 lakh rupees", "a substantial fine")
+                ]:
+                    diluted = diluted.replace(sw, tw)
+                if diluted != simp and diluted != orig:
                     expanded_rows.append({
                         "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
                         "language": "en",
                         "domain": dom,
                         "original": orig,
-                        "simplified": trunc,
-                        "lmp_score": 6.0,
+                        "simplified": diluted,
+                        "lmp_score": 5.4,
                         "decision": "Partially Preserved",
-                        "error_category": "omission",
-                        "explanation": "Secondary statutory liabilities or procedural clauses omitted."
+                        "error_category": "scope",
+                        "explanation": "Specific statutory timeline or amount generalized to vague discretionary standard."
                     })
 
             # Hallucinated fine
@@ -1151,20 +1179,47 @@ def build_multidomain_dataset():
                         "explanation": "निषेधात्मक विधिक नियम का सीधा विलोम।"
                     })
 
-            # Hindi Omission
-            if " अथवा " in simp or " और " in simp:
-                trunc_hi = simp.split(" अथवा ")[0].split(" और ")[0] + "।"
-                if len(trunc_hi) > 20 and trunc_hi != simp:
+            # Hindi Omission (Partially Preserved)
+            for sep_hi in [" अथवा ", " और ", " तथा ", " एवं ", " बशर्ते ", " जिसमें ", " किंतु "]:
+                if sep_hi in simp and len(simp) > 35:
+                    trunc_hi = simp.split(sep_hi)[0].strip().rstrip("।") + "।"
+                    if len(trunc_hi) > 20 and trunc_hi != simp:
+                        expanded_rows.append({
+                            "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
+                            "language": "hi",
+                            "domain": dom,
+                            "original": orig,
+                            "simplified": trunc_hi,
+                            "lmp_score": 5.9,
+                            "decision": "Partially Preserved",
+                            "error_category": "omission",
+                            "explanation": f"मूल विधिक प्रावधान संरक्षित है किंतु सहायक खंड '{sep_hi.strip()}' का लोप हुआ।"
+                        })
+                        break
+
+            # Hindi Scope / Timeline dilution (Partially Preserved)
+            if any(w in simp for w in ["30 दिन", "14 दिन", "60 दिन", "5 वर्ष", "48 घंटे", "50 हजार"]):
+                diluted_hi = simp
+                for sw, tw in [
+                    ("30 दिन", "उचित समय"),
+                    ("30 दिनों के भीतर", "यथासंभव शीघ्र"),
+                    ("14 दिन", "कुछ दिन"),
+                    ("60 दिन", "उचित अग्रिम सूचना"),
+                    ("48 घंटे", "सामान्य कार्य घंटे"),
+                    ("50 हजार रुपये", "उचित जुर्माना")
+                ]:
+                    diluted_hi = diluted_hi.replace(sw, tw)
+                if diluted_hi != simp and diluted_hi != orig:
                     expanded_rows.append({
                         "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
                         "language": "hi",
                         "domain": dom,
                         "original": orig,
-                        "simplified": trunc_hi,
-                        "lmp_score": 6.1,
+                        "simplified": diluted_hi,
+                        "lmp_score": 5.3,
                         "decision": "Partially Preserved",
-                        "error_category": "omission",
-                        "explanation": "महत्वपूर्ण विधिक दायित्वों का लोप।"
+                        "error_category": "scope",
+                        "explanation": "विधिक समय सीमा या राशि को शिथिल व अस्पष्ट किया गया।"
                     })
 
             # Hindi Hallucination

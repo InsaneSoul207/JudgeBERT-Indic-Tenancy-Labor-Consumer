@@ -3,8 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Models and checkpoints (avoid committing large binary weights if desired, but best_judgebert.pt is ~88MB)
+# Models and checkpoints (avoid committing large binary weights)
 models/*.pt
+models/**/*.pt
 models/ood_tenancy/
 experiments/scratch/
 

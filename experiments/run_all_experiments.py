@@ -134,7 +134,7 @@ def run_experiment_3(df_all, base_model):
         output_dir="models/ood_tenancy",
         base_model=base_model,
         epochs=3,
-        batch_size=8
+        batch_size=16
     )
     
     ood_predictor = JudgeBertPredictor(model_path=ood_model_path, base_model_name=base_model)
@@ -288,15 +288,16 @@ def main():
     
     print("Starting Comprehensive Experiment Execution...")
     
-    # 1. Train JUDGEBERT Model
-    print("Step 1: Training Multilingual JUDGEBERT...")
+    # 1. Train Enhanced Multilingual JUDGEBERT Model
+    print("Step 1: Training Enhanced Multilingual JUDGEBERT...")
     best_model_path = train_model(
         train_path="data/train.csv",
         val_path="data/val.csv",
         output_dir="models",
         base_model=base_model,
-        epochs=6,
-        batch_size=8
+        epochs=8,
+        batch_size=16,
+        lr=2.5e-5
     )
     
     # 2. Initialize Predictor & Baseline Evaluator

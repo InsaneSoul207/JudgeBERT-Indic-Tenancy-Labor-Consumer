@@ -24,7 +24,7 @@ os.environ["HF_HOME"] = os.path.expanduser("~/.cache/huggingface")
 os.environ["HF_HUB_CACHE"] = os.path.expanduser("~/.cache/huggingface/hub")
 
 class LegalLMPDataset(Dataset):
-    def __init__(self, df, tokenizer, max_len=256):
+    def __init__(self, df, tokenizer, max_len=128):
         self.df = df.reset_index(drop=True)
         self.tokenizer = tokenizer
         self.max_len = max_len
@@ -96,7 +96,19 @@ def train_model(
     # Loss functions
     mse_criterion = nn.MSELoss()
     huber_criterion = nn.SmoothL1Loss()
-    ce_criterion = nn.CrossEntropyLoss()
+    
+    # Dynamic class-weighting for decision head to solve minority-class underfitting
+    dec_counts = train_df["decision"].map(DECISION_MAP).value_counts()
+    n_classes = len(DECISION_MAP)
+    total_samples = len(train_df)
+    dec_weights = torch.tensor(
+        [total_samples / (n_classes * dec_counts.get(i, 1)) for i in range(n_classes)],
+        dtype=torch.float,
+        device=device
+    )
+    dec_weights = dec_weights / dec_weights.mean()
+    ce_dec_criterion = nn.CrossEntropyLoss(weight=dec_weights)
+    ce_err_criterion = nn.CrossEntropyLoss()
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     total_steps = len(train_loader) * epochs
@@ -125,11 +137,19 @@ def train_model(
             outputs = model(input_ids, attention_mask, token_type_ids)
             
             loss_reg = huber_criterion(outputs["pred_lmp"], targets_lmp)
-            loss_dec = ce_criterion(outputs["decision_logits"], targets_dec)
-            loss_err = ce_criterion(outputs["error_logits"], targets_err)
+            loss_dec = ce_dec_criterion(outputs["decision_logits"], targets_dec)
+            loss_err = ce_err_criterion(outputs["error_logits"], targets_err)
             
-            # Multi-task loss
-            loss = loss_reg + 0.4 * loss_dec + 0.4 * loss_err
+            # Dual-head ordinal consistency constraint:
+            # Penalize continuous score spilling over ordinal thresholds when contradicted by ground truth
+            pred_lmp = outputs["pred_lmp"]
+            loss_cons = (
+                torch.relu(pred_lmp - 4.0) * (targets_dec == 0).float() +
+                torch.relu(8.0 - pred_lmp) * (targets_dec == 2).float()
+            ).mean()
+            
+            # Rebalanced multi-task loss with enhanced categorical alignment and consistency
+            loss = loss_reg + 0.8 * loss_dec + 0.5 * loss_err + 0.3 * loss_cons
             
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -165,7 +185,7 @@ def train_model(
         reg_metrics = compute_regression_metrics(val_targets, val_preds)
         val_acc = (np.array(val_dec_preds) == np.array(val_dec_targets)).mean()
         
-        print(f"Epoch {epoch:02d}/{epochs:02d} | Train Loss: {avg_train_loss:.4f} | Val Pearson r: {reg_metrics['pearson_r']:.4f} | Val RMSE: {reg_metrics['rmse']:.4f} | Val Acc: {val_acc:.4f}")
+        print(f"Epoch {epoch:02d}/{epochs:02d} | Train Loss: {avg_train_loss:.4f} | Val Pearson r: {reg_metrics['pearson_r']:.4f} | Val RMSE: {reg_metrics['rmse']:.4f} | Val Acc: {val_acc:.4f}", flush=True)
         
         epoch_stats = {
             "epoch": epoch,
@@ -181,12 +201,12 @@ def train_model(
             best_val_pearson = reg_metrics["pearson_r"]
             best_model_path = os.path.join(output_dir, "best_judgebert.pt")
             torch.save(model.state_dict(), best_model_path)
-            print(f"  -> Saved new best checkpoint to {best_model_path} (Pearson r = {best_val_pearson:.4f})")
+            print(f"  -> Saved new best checkpoint to {best_model_path} (Pearson r = {best_val_pearson:.4f})", flush=True)
             
     with open(os.path.join(output_dir, "training_history.json"), "w") as f:
         json.dump(history, f, indent=2)
         
-    print(f"\nTraining Complete. Best Validation Pearson r: {best_val_pearson:.4f}")
+    print(f"\nTraining Complete. Best Validation Pearson r: {best_val_pearson:.4f}", flush=True)
     return os.path.join(output_dir, "best_judgebert.pt")
 
 if __name__ == "__main__":

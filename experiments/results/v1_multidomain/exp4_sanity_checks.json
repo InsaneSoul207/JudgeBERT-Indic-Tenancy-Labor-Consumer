@@ -1,0 +1,16 @@
+{
+  "identical": {
+    "ground_truth": 10.0,
+    "judgebert_mean": 8.913,
+    "judgebert_std": 0.5171490673826423,
+    "sbert_mean": 10.0,
+    "sbert_std": 2.93534753836866e-07
+  },
+  "unrelated": {
+    "ground_truth": 1.0,
+    "judgebert_mean": 3.4455,
+    "judgebert_std": 1.6252302670860617,
+    "sbert_mean": 5.615694999694824,
+    "sbert_std": 2.456995964050293
+  }
+}

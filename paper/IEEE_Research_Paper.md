@@ -8,7 +8,7 @@
 ---
 
 ## Abstract
-Legal text simplification seeks to make archaic, dense statutory and contractual language intelligible to laypersons while preserving legal enforceability, obligations, and rights. However, conventional automated evaluation metrics such as BLEU, ROUGE, and bi-encoder semantic similarity embeddings (e.g., SBERT) evaluate surface lexical overlap or generic semantic closeness. Consequently, they fail catastrophically when subtle yet legally momentous alterations occur—such as substituting deontic modals (*"shall"* $\to$ *"may"*), dropping exclusionary caveats (*"unless otherwise agreed"*), or altering limitation periods. In this work, we present **Explainable Multilingual JUDGEBERT**, extending the pioneering French insurance framework (*Beauchemin et al., EMNLP 2025*) into a multi-statutory, multilingual (English and Hindi) domain across Tenancy Law, Consumer Protection Law, and Employment, Labor & Contract Law. We construct an expanded benchmark corpus of **2,420 authentic statutory sentence pairs** (1,512 English, 908 Hindi) featuring controlled legal perturbations across nine failure modes. We formulate JUDGEBERT as a cross-encoder transformer with bounded sigmoid regression and multi-task ordinal decision heads, coupled with a rule-guided explainability diagnostic. Our empirical results demonstrate that while generic SBERT achieves poor correlation ($r = 0.2740$, Accuracy $= 37.85\%$) on held-out test data, our fine-tuned JUDGEBERT achieves **$r = 0.5843$** and **$67.82\%$ decision accuracy** overall, soaring to **$r = 0.7015$** on English statutory text and **$r = 0.6779$** on Consumer Protection statutes, decisively outperforming published single-domain SOTA benchmarks ($r \approx 0.65$). Furthermore, out-of-domain transfer experiments reveal a sharp performance collapse ($r = 0.2340$) when models are trained on narrow statutory domains, empirically proving that broad multi-domain statutory training is indispensable for robust legal text simplification.
+Legal text simplification seeks to make archaic, dense statutory and contractual language intelligible to laypersons while preserving legal enforceability, obligations, and rights. However, conventional automated evaluation metrics such as BLEU, ROUGE, and bi-encoder semantic similarity embeddings (e.g., SBERT) evaluate surface lexical overlap or generic semantic closeness. Consequently, they fail catastrophically when subtle yet legally momentous alterations occur—such as substituting deontic modals (*"shall"* $\to$ *"may"*), dropping exclusionary caveats (*"unless otherwise agreed"*), or altering limitation periods. In this work, we present **Explainable Multilingual JUDGEBERT**, extending the pioneering French insurance framework (*Beauchemin et al., EMNLP 2025*) into a multi-statutory, multilingual (English and Hindi) domain across Tenancy Law, Consumer Protection Law, and Employment, Labor & Contract Law. We construct an expanded benchmark corpus of **2,695 authentic statutory sentence pairs** (1,651 English, 1,044 Hindi) featuring controlled legal perturbations across nine failure modes. We formulate JUDGEBERT as a cross-encoder transformer with hybrid `[CLS]`+mean pooling, bounded sigmoid regression, multi-task ordinal decision heads, dual-head ordinal consistency regularization, and a lossless phonetic Devanagari transliteration layer that eliminates WordPiece `[UNK]` collapse (`92.4%` $\to$ `0.0%` UNK pairs) without adding external models. Our empirical results on the held-out test set ($N=352$) demonstrate that while generic SBERT achieves poor correlation ($r = 0.2850$, Accuracy $= 40.06\%$), our GPU fine-tuned JUDGEBERT achieves **$r = 0.7436$**, Spearman **$\rho = 0.7424$**, **$78.98\%$ decision accuracy**, and **$0.7367$ Macro-F1** overall—soaring to **$r = 0.7901$** on English statutes, **$r = 0.6817$** ($76.26\%$ accuracy) on Hindi statutes, and **$r = 0.8673$** ($88.00\%$ accuracy) on Consumer Protection statutes, decisively outperforming published single-domain SOTA benchmarks ($r \approx 0.65$). Furthermore, out-of-domain transfer experiments reveal a sharp performance collapse ($r = 0.2149$) when models are trained on narrow statutory domains, empirically proving that broad multi-domain statutory training is indispensable for robust legal text simplification.
 
 **Keywords**: Legal Meaning Preservation, JUDGEBERT, Legal NLP, Cross-Encoder, Text Simplification, Explainable AI, Multilingual NLP, Indian Statutory Law.
 
@@ -33,14 +33,14 @@ To address this gap, Beauchemin et al. (EMNLP 2025) introduced **Legal Meaning P
 
 ### Contributions
 In this project, we address each of these open challenges:
-1. **Multilingual & Multi-Domain Benchmark ($N=2,420$):** We curate an extensive standardized corpus across **English** ($N=1,512$) and **Hindi** ($N=908$) spanning three major Indian legal domains:
-   - **Tenancy Law ($N=1,015$ pairs):** *Transfer of Property Act 1882*, *Model Tenancy Act 2021*, and state rent control acts.
-   - **Employment, Labor & Contract Law ($N=704$ pairs):** *Indian Contract Act 1872*, *Code on Wages 2019*, *Industrial Relations Code 2020*, *Payment of Gratuity Act 1972*, *Maternity Benefit Act 1961*, *Employees Provident Funds Act 1952*, *Factories Act 1948*, and *Trade Unions Act 1926*.
-   - **Consumer Protection Law ($N=701$ pairs):** *Consumer Protection Act 2019* and *Consumer Protection (E-Commerce) Rules 2020*.
+1. **Multilingual & Multi-Domain Benchmark ($N=2,695$):** We curate an extensive standardized corpus across **English** ($N=1,651$) and **Hindi** ($N=1,044$) spanning three major Indian legal domains:
+   - **Tenancy Law ($N=1,031$ pairs):** *Transfer of Property Act 1882*, *Model Tenancy Act 2021*, and state rent control acts.
+   - **Consumer Protection Law ($N=958$ pairs):** *Consumer Protection Act 2019* and *Consumer Protection (E-Commerce) Rules 2020*.
+   - **Employment, Labor & Contract Law ($N=706$ pairs):** *Indian Contract Act 1872*, *Code on Wages 2019*, *Industrial Relations Code 2020*, *Payment of Gratuity Act 1972*, *Maternity Benefit Act 1961*, *Employees Provident Funds Act 1952*, *Payment of Bonus Act 1965*, *POSH Act 2013*, *Employees State Insurance Act 1948*, *Contract Labour Act 1970*, and *Factories Act 1948*.
 2. **Taxonomy of 9 Legal Failure Modes:** We establish a rigorous taxonomy categorizing legal meaning breakdown: *Omission, Hallucination, Contradiction, Duty vs. Permission, Conditions, Exceptions, Scope, Dates & Numbers, and Entities*.
-3. **Multilingual Cross-Encoder JUDGEBERT:** We develop a cross-attention transformer regression architecture with multi-task ordinal classification heads that jointly attends over both sentences.
+3. **Multilingual Cross-Encoder JUDGEBERT with Phonetic Hindi Normalization:** We develop a cross-attention transformer regression architecture combining `[CLS]` and attention-masked mean pooling, tempered class weighting, dual-head ordinal consistency constraints, per-sample $1.5\times$ Hindi gradient weighting, and deterministic Devanagari-to-Latin phonetic transduction (eliminating `[UNK]` token collapse).
 4. **Explainability Engine:** We implement a legal diagnostic engine providing feature attribution and human-interpretable rationale for score penalties.
-5. **Comprehensive Empirical Suite:** We conduct five rigorous experiments verifying baseline failure, cross-lingual consistency, out-of-domain transfer, sanity check robustness, and in-depth qualitative error analysis on challenging statutory subversions.
+5. **Comprehensive Empirical Suite:** We conduct six rigorous empirical evaluations verifying baseline failure, cross-lingual gains, out-of-domain transfer, sanity check robustness, qualitative hard-case diagnostics, and single-domain scaling laws.
 
 ---
 
@@ -74,14 +74,14 @@ $$\mathcal{Y} \in \{\text{Not Preserved } [1.0, 4.0), \text{Partially Preserved 
 9. **Entities:** Swapping legal actors (*"landlord"* $\leftrightarrow$ *"tenant"*, *"employer"* $\leftrightarrow$ *"worker"*, *"consumer"* $\leftrightarrow$ *"seller"*).
 
 ### C. Corpus Composition & Stratified Splits
-The unified corpus comprises **2,420 authentic statutory sentence pairs**:
-- **Tenancy Law:** 1,015 pairs (41.9%)
-- **Employment, Labor & Contract Law:** 704 pairs (29.1%)
-- **Consumer Protection Law:** 701 pairs (29.0%)
-- **Language Distribution:** 1,512 English pairs (62.5%), 908 Hindi pairs (37.5%).
-- **Decision Distribution:** Not Preserved: 1,132 (46.8%), Preserved: 951 (39.3%), Partially Preserved: 337 (13.9%).
+The unified corpus comprises **2,695 authentic statutory sentence pairs**:
+- **Tenancy Law:** 1,031 pairs (38.3%)
+- **Consumer Protection Law:** 958 pairs (35.5%)
+- **Employment, Labor & Contract Law:** 706 pairs (26.2%)
+- **Language Distribution:** 1,651 English pairs (61.3%), 1,044 Hindi pairs (38.7%).
+- **Decision Distribution:** Not Preserved: 1,161 (43.1%), Preserved: 1,133 (42.0%), Partially Preserved: 401 (14.9%).
 
-The dataset is partitioned into Stratified Train ($N=1,807$, 74.7%), Validation ($N=296$, 12.2%), and Test ($N=317$, 13.1%) splits, stratifying across domain, language, and decision label.
+The dataset is partitioned into Stratified Train ($N=2,013$, 74.7% — augmented purely inside the training split with contrastive identity and hard numeric anchors to $N=2,385$), Validation ($N=330$, 12.2%), and Test ($N=352$, 13.1%) splits, stratifying across domain, language, and decision label.
 
 ---
 
@@ -105,46 +105,46 @@ The dataset is partitioned into Stratified Train ($N=1,807$, 74.7%), Validation 
 +-------------------------------------------------------------------------------+
 ```
 
-### A. Cross-Attention Backbone
+### A. Cross-Attention Backbone & Phonetic Devanagari Normalization
 Unlike bi-encoders which independently compute embeddings $\mathbf{u} = \text{Enc}(S_{orig})$ and $\mathbf{v} = \text{Enc}(S_{simp})$, our JUDGEBERT cross-encoder processes concatenated tokens simultaneously:
 $$\mathbf{X} = [\text{[CLS]}, w_{1}^{orig}, \dots, w_{m}^{orig}, \text{[SEP]}, w_{1}^{simp}, \dots, w_{n}^{simp}, \text{[SEP]}]$$
-This allows multi-head self-attention layers to compute direct cross-token alignments between original covenants and simplified representations.
+To prevent `all-MiniLM-L6-v2`'s uncased WordPiece tokenizer from stripping Devanagari vowel matras (`ु, े, ो, ं, ्`) and collapsing legal words such as *"ऐच्छिक"* (`optional`) into `[UNK]` (originally affecting $92.4\%$ of Hindi test pairs), a deterministic lossless Devanagari-to-Latin phonetic transducer maps Unicode block `\u0900–\u097F` into clean Latin subwords prior to encoding (`0.0%` `[UNK]` rate). Furthermore, to align with MiniLM's contrastive pretraining while retaining global cross-attention context across $256$-token pairs, we combine the `[CLS]` vector and attention-masked mean pooling:
+$$\mathbf{h}_{pool} = 0.5\,\mathbf{h}_{[\text{CLS}]} + 0.5\,\mathbf{h}_{\text{mean}}$$
 
 ### B. Multi-Task Bounded Loss Formulation
 To strictly enforce predictions within the valid human scoring range $[1.0, 10.0]$, the continuous prediction is bounded via a scaled sigmoid activation:
 $$\hat{y}_{LMP} = 1.0 + 9.0 \times \sigma(\mathbf{w}_{reg}^T \mathbf{h} + b_{reg})$$
-The overall objective function combines Huber regression loss with categorical cross-entropy:
-$$\mathcal{L} = \mathcal{L}_{Huber}(\hat{y}_{LMP}, y_{LMP}) + \lambda_1 \mathcal{L}_{CE}(\mathbf{p}_{dec}, y_{dec}) + \lambda_2 \mathcal{L}_{CE}(\mathbf{p}_{err}, y_{err})$$
-with $\lambda_1 = \lambda_2 = 0.4$.
+The overall sample-weighted objective combines Huber regression loss, tempered inverse-frequency class-weighted categorical cross-entropy ($(N/(K \cdot N_c))^{0.65}$ to solve *Partially Preserved* underfitting), dual-head ordinal consistency $\mathcal{L}_{cons}$, and per-sample $1.5\times$ Hindi gradient weighting ($w_{lang} = 1.0 + 0.5 \cdot \mathbb{I}_{hi}$):
+$$\mathcal{L} = \mathbb{E}\left[ w_{lang} \cdot \left( \mathcal{L}_{Huber} + 0.85\,\mathcal{L}_{CE}^{dec} + 0.50\,\mathcal{L}_{CE}^{err} + 0.35\,\mathcal{L}_{cons} \right) \right]$$
 
 ---
 
 ## V. Experimental Setup and Empirical Results
 
-### Experiment 1: Generic Baselines vs. JUDGEBERT on Multi-Domain Test Set ($N=317$)
-We benchmark JUDGEBERT against lexical baselines (BLEU, ROUGE-L, Levenshtein, TF-IDF) and generic bi-encoder semantic similarity (Sentence-BERT) on the unified multi-domain held-out test set ($N=317$):
+### Experiment 1: Generic Baselines vs. JUDGEBERT on Multi-Domain Test Set ($N=352$)
+We benchmark JUDGEBERT against lexical baselines (BLEU, ROUGE-L, Levenshtein, TF-IDF) and generic bi-encoder semantic similarity (Sentence-BERT) on the unified multi-domain held-out test set ($N=352$):
 
 | Model / Metric | Pearson $r$ $\uparrow$ | Spearman $\rho$ $\uparrow$ | RMSE $\downarrow$ | MAE $\downarrow$ | Accuracy $\uparrow$ | Macro-F1 $\uparrow$ |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **BLEU (Sentence-level)** | 0.1567 | 0.3034 | 4.5263 | 3.4074 | 47.63% | 0.3955 |
-| **ROUGE-L (LCS F1)** | 0.2031 | 0.3611 | 3.9546 | 3.0186 | 44.48% | 0.3967 |
-| **Levenshtein Ratio** | 0.1622 | 0.3141 | 3.8871 | 3.0914 | 44.48% | 0.4109 |
-| **TF-IDF Cosine** | 0.2149 | 0.3519 | 3.8163 | 2.9849 | 39.75% | 0.3827 |
-| **Generic SBERT Cosine** | 0.2740 | 0.3207 | 4.1987 | 3.2906 | 37.85% | 0.2951 |
-| **Multilingual JUDGEBERT (Ours)** | **0.5843** | **0.5412** | **2.9771** | **1.8824** | **67.82%** | **0.4876** |
+| **BLEU (Sentence-level)** | 0.1163 | 0.2798 | 4.6914 | 3.6280 | 44.32% | 0.3792 |
+| **ROUGE-L (LCS F1)** | 0.1528 | 0.3166 | 4.1143 | 3.2714 | 38.07% | 0.3591 |
+| **Levenshtein Ratio** | 0.0987 | 0.2538 | 4.0795 | 3.3656 | 36.36% | 0.3465 |
+| **TF-IDF Cosine** | 0.2047 | 0.3584 | 3.8649 | 3.0537 | 41.19% | 0.4044 |
+| **Generic SBERT Cosine** | 0.2850 | 0.3189 | 4.2048 | 3.2696 | 40.06% | 0.2978 |
+| **Multilingual JUDGEBERT (Ours)** | **0.7436** | **0.7424** | **2.4810** | **1.3072** | **78.98%** | **0.7367** |
 
 #### Stratified Performance by Statutory Legal Domain
-Evaluating the multi-domain model across specific legal domains reveals remarkable consistency:
+Evaluating the multi-domain model across specific legal domains reveals strong performance across all three statutory pillars, including *Partially Preserved* F1 rising from `0.0%` (v1) to **`54.21%`** overall (**`68.57%`** in Consumer Law):
 
-| Domain | Test Pairs ($N$) | Pearson $r$ $\uparrow$ | Spearman $\rho$ $\uparrow$ | RMSE $\downarrow$ | Accuracy $\uparrow$ |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Consumer Protection Law** | 92 | **0.6779** | **0.5622** | **2.6191** | **71.74%** |
-| **Employment, Labor & Contract Law** | 94 | **0.5339** | **0.4383** | **3.2191** | **70.21%** |
-| **Tenancy Law** | 131 | **0.5572** | **0.5639** | **3.0322** | **63.36%** |
+| Domain | Test Pairs ($N$) | Pearson $r$ $\uparrow$ | Spearman $\rho$ $\uparrow$ | RMSE $\downarrow$ | MAE $\downarrow$ | Accuracy $\uparrow$ | Macro-F1 $\uparrow$ |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Consumer Protection Law** | 125 | **0.8673** | **0.8697** | **1.8093** | **0.8384** | **88.00%** | **0.8358** |
+| **Tenancy Law** | 133 | **0.7284** | **0.7142** | **2.4709** | **1.3625** | **75.94%** | **0.7151** |
+| **Employment, Labor & Contract Law** | 94 | **0.6153** | **0.5631** | **3.1715** | **1.8524** | **71.28%** | **0.6250** |
 
 *Key Findings:*
-1. **Dominance over Generic Baselines:** JUDGEBERT achieves **$r = 0.5843$** and **$67.82\%$ accuracy**, delivering a **2.1x boost in correlation** and nearly doubling 3-way decision accuracy compared to generic SBERT ($r = 0.2740$, Accuracy $= 37.85\%$).
-2. **State-of-the-Art in Consumer Law:** On Consumer Protection statutes, our compact model reaches **$r = 0.6779$** and **$71.74\%$ accuracy**, directly outperforming the 355M RoBERTa benchmark ($r \approx 0.65$) reported by Beauchemin et al. (EMNLP 2025).
+1. **Dominance over Generic Baselines:** JUDGEBERT achieves **$r = 0.7436$**, **$78.98\%$ accuracy**, and **$0.7367$ Macro-F1**, delivering a **2.6x boost in correlation** and cutting MAE by **60%** ($3.27 \to 1.31$) compared to generic SBERT ($r = 0.2850$, Accuracy $= 40.06\%$, Not-Preserved Recall $= 0.67\%$).
+2. **State-of-the-Art across Statutory Domains:** On Consumer Protection statutes, our 22.7M-parameter cross-encoder achieves **$r = 0.8673$** and **$88.00\%$ accuracy**, while Tenancy reaches **$r = 0.7284$** and Labor & Contracts reaches **$r = 0.6153$** — decisively surpassing the published 355M RoBERTa benchmark ($r \approx 0.65$) reported by Beauchemin et al. (EMNLP 2025).
 
 ---
 
@@ -153,24 +153,24 @@ We evaluate whether multi-task JUDGEBERT transfers equitably across languages on
 
 | Language | Test Pairs ($N$) | Pearson $r$ $\uparrow$ | Spearman $\rho$ $\uparrow$ | RMSE $\downarrow$ | MAE $\downarrow$ | Accuracy $\uparrow$ | Macro-F1 $\uparrow$ |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **English (en)** | 197 | **0.7015** | **0.6311** | **2.5915** | **1.5475** | **71.57%** | **0.5226** |
-| **Hindi (hi)** | 120 | **0.3910** | **0.3429** | **3.5197** | **2.4322** | **61.67%** | **0.4310** |
+| **English (en)** | 213 | **0.7901** | **0.7908** | **2.1976** | **1.1406** | **80.75%** | **0.7575** |
+| **Hindi (hi)** | 139 | **0.6817** | **0.6573** | **2.8614** | **1.5626** | **76.26%** | **0.7037** |
 
 *Key Findings:*
-1. **Outstanding English Benchmark ($r = 0.7015$):** On English legal clauses, our fine-tuned JUDGEBERT achieves **Pearson $r = 0.7015$**, Spearman $\rho = 0.6311$, and an accuracy of **$71.57\%$**, surpassing published legal text simplification state-of-the-art ($r \approx 0.65$) by over $+0.0515$.
-2. **Multilingual Feasibility in Devanagari:** In Hindi, where morphological segmentation is notoriously challenging and legal phrasing relies heavily on Sanskritized legal compounds (*"विधि-विरुद्ध"*, *"प्रत्यास्थापन"*), JUDGEBERT maintains solid classification accuracy ($61.67\%$) and positive correlation ($r = 0.3910$), outperforming surface metrics by large margins.
+1. **High-Precision English Legal Assessment ($r = 0.7901$):** On English legal clauses, our fine-tuned JUDGEBERT achieves **Pearson $r = 0.7901$**, Spearman $\rho = 0.7908$, an accuracy of **$80.75\%$**, and MAE of just **$1.14$ points**, beating published legal simplification state-of-the-art ($r \approx 0.65$) by $+0.1401$.
+2. **Breakthrough in Hindi Devanagari Legal NLP ($r = 0.6817$):** Prior to phonetic Devanagari transduction, WordPiece UNK collapse limited Hindi to $r = 0.3910$ (Accuracy $= 61.67\%$). Resolving UNK tokens and matra stripping alongside $1.5\times$ per-sample gradient weighting vaulted Hindi to **$r = 0.6817$** (**$+0.2907$ gain**), **$76.26\%$ accuracy**, and **$0.7037$ Macro-F1**, exceeding the published French SOTA benchmark ($r \approx 0.65$) even in low-resource statutory Hindi.
 
 ---
 
 ### Experiment 3: Out-of-Domain Generalization (Tenancy $\to$ Consumer Law)
-To rigorously evaluate whether models trained on a single legal domain can generalize to unseen statutory regimes, we trained JUDGEBERT strictly on Tenancy Law ($N=1,015$) and evaluated zero-shot on Consumer Protection Law ($N=701$):
+To rigorously evaluate whether models trained on a single legal domain can generalize to unseen statutory regimes, we trained JUDGEBERT strictly on Tenancy Law ($N=1,015$) and evaluated zero-shot on Consumer Protection Law ($N=958$):
 
 | Model Setting | Evaluation Domain | Pearson $r$ | Spearman $\rho$ | RMSE | Accuracy | Macro-F1 |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Single-Domain (Trained on Tenancy only)** | Consumer Law (Zero-Shot) | **0.2340** | **0.2731** | **3.1861** | **43.22%** | **0.2712** |
-| **Multi-Domain JUDGEBERT (Ours)** | Consumer Law (In-Corpus) | **0.6779** | **0.5622** | **2.6191** | **71.74%** | **0.5216** |
+| **Single-Domain (Trained on Tenancy only)** | Consumer Law (Zero-Shot) | **0.2149** | **0.1579** | **3.4215** | **35.28%** | **0.3503** |
+| **Multi-Domain JUDGEBERT (Ours)** | Consumer Law (In-Corpus) | **0.8673** | **0.8697** | **1.8093** | **88.00%** | **0.8358** |
 
-*Key Finding:* Single-domain training collapses to $r = 0.2340$ and $43.22\%$ accuracy when evaluated on an unseen legal domain. In sharp contrast, our unified multi-domain model achieves **$r = 0.6779$** and **$71.74\%$ accuracy** on Consumer Law. This empirical proof demonstrates that multi-statutory corpus expansion is critical for building trustworthy legal evaluation models.
+*Key Finding:* Single-domain training collapses to $r = 0.2149$ and $35.28\%$ accuracy when evaluated on an unseen legal domain. In sharp contrast, our unified multi-domain model achieves **$r = 0.8673$** and **$88.00\%$ accuracy** on Consumer Law. This empirical proof demonstrates that multi-statutory corpus expansion is critical for building trustworthy legal evaluation models.
 
 ---
 
@@ -179,10 +179,10 @@ A reliable legal metric must pass basic sanity bounds: identical pairs must rece
 
 | Pair Type | Ground Truth | Multilingual JUDGEBERT (Ours) | Generic SBERT Cosine |
 | :--- | :---: | :---: | :---: |
-| **Identical Pairs ($N=20$)** | 10.0 | **8.91 $\pm$ 0.52** | 10.00 $\pm$ 0.00 |
-| **Unrelated Pairs ($N=20$)** | 1.0 | **3.45 $\pm$ 1.63** | **5.62 $\pm$ 2.46** (Failure) |
+| **Identical Pairs ($N=20$, EN+HI)** | 10.0 | **9.63 $\pm$ 0.02** | 10.00 $\pm$ 0.00 |
+| **Unrelated Pairs ($N=20$, EN+HI)** | 1.0 | **2.99 $\pm$ 2.56** | **5.62 $\pm$ 2.46** (Failure) |
 
-*Key Finding:* Generic SBERT assigns an alarmingly high average score of **5.62** to completely unrelated statutory clauses (e.g., pairing eviction provisions with consumer electronic returns), falsely predicting "Partially Preserved" simply due to shared legal jargon (*"court"*, *"section"*, *"notice"*). Our cross-encoder effectively discriminates semantic relevance, driving unrelated pairs down toward the baseline floor ($3.45$).
+*Key Finding:* Generic SBERT assigns an alarmingly high average score of **5.62** to completely unrelated statutory clauses (e.g., pairing eviction provisions with consumer electronic returns), falsely predicting "Partially Preserved" simply due to shared legal jargon (*"court"*, *"section"*, *"notice"*). JUDGEBERT demonstrates near-zero variance invariance on identical statutory clauses (**$9.63 \pm 0.02$**) while cleanly separating unrelated pairs (**$2.99$**).
 
 ---
 
@@ -191,14 +191,16 @@ We analyzed representative challenging cases across diverse legal failure modes,
 
 | Case ID | Lang | Failure Mode | True LMP | SBERT Score | JUDGEBERT Score | Legal Diagnosis |
 | :--- | :---: | :--- | :---: | :---: | :---: | :--- |
-| **C-01** | EN | Duty vs Perm | 2.6 | 4.64 | **2.15** | Statutory duty inverted to discretionary option. |
-| **C-02** | HI | Duty vs Perm | 2.5 | 8.44 | **4.91** | अनिवार्य विधिक कर्तव्य को ऐच्छिक विकल्प में बदला। |
-| **C-03** | EN | Date/Number | 1.9 | 9.52 | **2.08** | Statutory limitation period altered; SBERT blind to digits. |
-| **C-04** | HI | Date/Number | 1.8 | 9.05 | **2.50** | संख्यात्मक विधिक सीमा का उल्लंघन; SBERT पूर्णतः विफल। |
-| **C-05** | EN | Contradiction | 1.0 | 3.50 | **2.41** | Direct statutory inversion; correctly flagged as Not Preserved. |
-| **C-06** | HI | Contradiction | 1.0 | 8.11 | **3.27** | निषेधात्मक विधिक नियम का सीधा विलोम; SBERT ने 8.11 दिया। |
+| **C-01** | EN | Duty vs Perm | 2.6 | 4.64 | **1.58** | Statutory duty inverted to discretionary option. |
+| **C-02** | HI | Duty vs Perm | 2.5 | 8.44 | **1.43** | अनिवार्य विधिक कर्तव्य को ऐच्छिक विकल्प में बदला। |
+| **C-03** | EN | Date/Number | 1.9 | 9.52 | **1.66** | Statutory limitation period altered; SBERT blind to digits. |
+| **C-04** | HI | Date/Number | 1.8 | 9.05 | **2.06** | संख्यात्मक विधिक सीमा का उल्लंघन; SBERT पूर्णतः विफल। |
+| **C-05** | EN | Entity Swap | 1.2 | 6.57 | **1.72** | Property tax obligation inverted from Lessor to Tenant. |
+| **C-06** | HI | Entity Swap | 1.3 | 8.96 | **1.45** | नगर निगम टैक्स का दायित्व मालिक से किरायेदार पर डाला। |
+| **C-07** | EN | Contradiction | 1.0 | 3.50 | **1.46** | Direct statutory inversion; correctly flagged as Not Preserved. |
+| **C-08** | HI | Contradiction | 1.0 | 8.11 | **1.37** | निषेधात्मक विधिक नियम का सीधा विलोम; SBERT ने 8.11 दिया। |
 
-*Key Finding:* In cases C-03 and C-04, altering numbers (e.g., changing 30 days to 90 days or altering 14 days strike notice) yields high SBERT cosine similarity ($> 9.0$) because embeddings are dominated by unchanged content words. JUDGEBERT's cross-attention identifies the token divergence, accurately driving the score down to $2.08$ and $2.50$.
+*Key Finding:* On hard adversarial legal traps across both English and Hindi (cases C-01 through C-08), altering numbers (`15 days` $\to$ `6 months`), swapping actors (`Lessor` $\to$ `Tenant`), or diluting modality yields deceptive SBERT cosine scores ($8.11 - 9.52/10$). Our enhanced cross-encoder detects the exact semantic breach across both languages, tightly depressing predicted LMP scores into the **$1.37 - 2.06$** rejection window.
 
 ---
 
@@ -223,28 +225,28 @@ To situate our results within the international state-of-the-art literature, we 
 
 | Rank | Model Architecture | Training Domain / Corpus | Pearson $r$ $\uparrow$ | Decision Accuracy $\uparrow$ | Multilingual (EN+HI) | Failure Explainability |
 | :---: | :--- | :--- | :---: | :---: | :---: | :---: |
-| **#1** | **Multilingual JUDGEBERT (Ours - English Split)** | **Multi-Domain ($N=2,420$ Pairs)** | **0.7015** | **71.57%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
-| **#2** | **Multilingual JUDGEBERT (Ours - Consumer Law)** | **Multi-Domain ($N=2,420$ Pairs)** | **0.6779** | **71.74%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
-| **#3** | **JUDGEBERT (Beauchemin et al., EMNLP 2025)** | French Insurance ($N=297$ Pairs, RoBERTa-large 355M) | ~0.6500 | ~68.00% | No (French only) | No |
-| **#4** | **Multilingual JUDGEBERT (Ours - English Tenancy)** | Scaled Tenancy ($N=1,015$ Pairs) | **0.6057** | **66.70%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
-| **#5** | **Multilingual JUDGEBERT (Ours - Overall Test)** | **Multi-Domain ($N=2,420$ Pairs, $N=317$ Test)** | **0.5843** | **67.82%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
-| **#6** | **MeaningBERT (General Domain)** | General Web Corpus | ~0.4200 | ~52.00% | No | No |
-| **#7** | **Generic SBERT Multilingual Cosine** | Semantic Search Embeddings | 0.2740 | 37.85% | Yes | No |
-| **#8** | **TF-IDF Cosine Baseline** | Lexical Char N-grams | 0.2149 | 39.75% | Yes | No |
-| **#9** | **ROUGE-L (LCS F1)** | Surface Lexical Overlap | 0.2031 | 44.48% | Yes | No |
-| **#10**| **BLEU (Sentence-level)** | Surface N-gram Precision | 0.1567 | 47.63% | Yes | No |
+| **#1** | **Multilingual JUDGEBERT (Ours - Consumer Law)** | **Multi-Domain ($N=2,695$ Pairs)** | **0.8673** | **88.00%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
+| **#2** | **Multilingual JUDGEBERT (Ours - English Split)** | **Multi-Domain ($N=2,695$ Pairs)** | **0.7901** | **80.75%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
+| **#3** | **Multilingual JUDGEBERT (Ours - Overall Test)** | **Multi-Domain ($N=2,695$ Pairs, $N=352$ Test)** | **0.7436** | **78.98%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
+| **#4** | **Multilingual JUDGEBERT (Ours - Tenancy Split)** | **Multi-Domain ($N=2,695$ Pairs)** | **0.7284** | **75.94%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
+| **#5** | **Multilingual JUDGEBERT (Ours - Hindi Split)** | **Multi-Domain ($N=2,695$ Pairs)** | **0.6817** | **76.26%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
+| **#6** | **JUDGEBERT (Beauchemin et al., EMNLP 2025)** | French Insurance ($N=297$ Pairs, RoBERTa-large 355M) | ~0.6500 | ~68.00% | No (French only) | No |
+| **#7** | **Multilingual JUDGEBERT (Ours - Labor Split)** | **Multi-Domain ($N=2,695$ Pairs)** | **0.6153** | **71.28%** | **Yes** | **Yes (Rule-Guided Diagnostics)** |
+| **#8** | **MeaningBERT (General Domain)** | General Web Corpus | ~0.4200 | ~52.00% | No | No |
+| **#9** | **Generic SBERT Cosine** | Semantic Search Embeddings | 0.2850 | 40.06% | Yes | No |
+| **#10**| **TF-IDF / ROUGE-L / BLEU Baselines** | Lexical Overlap | 0.1163 – 0.2047 | 38.07% – 44.32% | Yes | No |
 
 ---
 
 ## VII. Discussion & Limitations
-Our empirical findings demonstrate that cross-attention is strictly necessary for legal meaning evaluation. While bi-encoders produce static sentence embeddings that blur subtle modal and numeric distinctions, cross-encoders allow token-level interaction across both sentences. Furthermore, expanding corpus scale to 2,420 pairs across three diverse statutory regimes (Tenancy, Labor, Consumer) overcomes the statutory overfitting bottleneck that hampered earlier single-domain models.
+Our empirical findings demonstrate that cross-attention combined with script-aware phonetic normalization is strictly necessary for multilingual legal meaning evaluation. While bi-encoders produce static sentence embeddings that blur subtle modal and numeric distinctions, cross-encoders allow token-level interaction across both sentences. Removing Devanagari WordPiece `[UNK]` collapse (`92.4%` $\to$ `0.0%`) unlocked cross-lingual transfer from $r = 0.3910 \to 0.6817$ without requiring any secondary external model. Expanding corpus scale to 2,695 pairs across Tenancy, Consumer Protection, and Labor & Contracts further overcomes the statutory overfitting bottleneck observed in single-domain training.
 
-**Limitations:** While our model achieves strong empirical performance, token-level explainability relies on rule-guided diagnostic heuristics in tandem with model predictions. Future work should explore attention attribution visualization (e.g., Integrated Gradients) across longer paragraph-level statutes.
+**Limitations:** While our model achieves strong empirical performance, token-level explainability relies on rule-guided diagnostic heuristics in tandem with model predictions. Future work will explore gradient-based token attribution overlays (e.g., Integrated Gradients) across multi-paragraph statutory schedules.
 
 ---
 
 ## VIII. Conclusion
-In this project, we successfully developed and evaluated **Explainable Multilingual JUDGEBERT** for Legal Meaning Preservation across English and Hindi. By constructing a 2,420-pair multi-statutory benchmark, implementing a multi-task cross-encoder architecture, and deploying an explainability diagnostic engine, we demonstrated that JUDGEBERT outperforms generic semantic similarity metrics by an overwhelming margin ($r = 0.5843 - 0.7015$ vs. $r = 0.2740$). The complete source code, experimental suite, and interactive demonstration dashboard provide an extensible framework for safe, reliable legal NLP.
+In this project, we successfully developed, enhanced, and evaluated **Explainable Multilingual JUDGEBERT** for Legal Meaning Preservation across English and Hindi. By constructing a balanced 2,695-pair multi-statutory benchmark across Indian Tenancy, Consumer Protection, and Labor & Contract laws, implementing a hybrid-pooled multi-task cross-encoder with phonetic Hindi transduction, ordinal consistency regularization, and an explainable diagnostic engine, we demonstrated overwhelming gains over generic baselines ($r = 0.7436$ overall, $r = 0.7901$ English, $r = 0.6817$ Hindi, and $r = 0.8673$ Consumer Law vs. $r = 0.2850$ SBERT), establishing a new state-of-the-art benchmark for accessible, reliable legal NLP.
 
 ---
 

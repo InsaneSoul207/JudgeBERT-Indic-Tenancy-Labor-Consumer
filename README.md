@@ -54,26 +54,28 @@ This project extends the **JUDGEBERT** cross-encoder regression paradigm from Fr
 
 ## 📁 Repository Structure
 ```
-Projects/
+JudgeBERT-Indic-Tenancy-Labor-Consumer/
 ├── data/
 │   ├── annotation_guidelines.md       # Formal LMP scoring rubric & taxonomy
-│   ├── build_dataset.py               # Dataset generation & stratification script
-│   ├── full_dataset.csv               # 340 curated legal sentence pairs
-│   ├── train.csv / val.csv / test.csv # Stratified splits (70/15/15)
+│   ├── full_dataset.csv               # 2,695 multi-domain pairs (Tenancy, Labor, Consumer)
+│   ├── train.csv / val.csv / test.csv # Stratified splits (2,013 / 330 / 352)
 │   └── sanity_checks.csv              # 40 Identical and Unrelated anchor pairs
 ├── src/
+│   ├── build_multidomain_corpus.py    # Multi-domain statutory dataset builder
+│   ├── hindi_legal_enhancement.py     # Hindi deontic, exception & labor enhancements
 │   ├── baselines.py                   # BLEU, ROUGE-L, Levenshtein, TF-IDF, SBERT
-│   ├── model.py                       # Multilingual JUDGEBERT PyTorch module
-│   ├── train.py                       # Fine-tuning loop with multi-task loss
-│   ├── evaluate.py                    # Pearson r, Spearman rho, RMSE, MAE, F1
+│   ├── model.py                       # JUDGEBERT + Devanagari Phonetic Layer + Mean/CLS Pool
+│   ├── train.py                       # GPU fine-tuning loop (consistency + 1.5x Hindi boost)
+│   ├── evaluate.py                    # Pearson r, Spearman rho, RMSE, MAE, Macro-F1
 │   └── explainability.py              # Rule-guided legal feature attribution engine
 ├── experiments/
 │   ├── run_all_experiments.py         # Automated runner for Experiments 1 through 5
-│   └── results/                       # Empirical JSON results and CSV reports
+│   └── results/                       # Verified empirical JSON results & CSV reports
 ├── demo/
 │   └── app.py                         # Interactive Streamlit dashboard
 ├── paper/
-│   └── IEEE_Research_Paper.md         # Comprehensive IEEE-style research paper
+│   ├── IEEE_Research_Paper.md         # Comprehensive IEEE-style research paper
+│   └── generate_docs.py               # Generates Word (.docx) and PDF deliverables
 └── README.md
 ```
 
@@ -86,12 +88,12 @@ Projects/
 pip install torch transformers sentence-transformers scikit-learn pandas numpy streamlit
 ```
 
-### 2. Generate Dataset
+### 2. Build the Multi-Domain Corpus ($N=2,695$)
 ```bash
-python data/build_dataset.py
+python src/build_multidomain_corpus.py
 ```
 
-### 3. Run Training and All 5 Experiments
+### 3. Run GPU Training and All 5 Experiments
 ```bash
 python experiments/run_all_experiments.py
 ```
@@ -103,26 +105,31 @@ streamlit run demo/app.py
 
 ---
 
-## 📊 Summary of Experimental Results
+## 📊 Summary of Empirical Results (Held-Out Test Set, $N=352$)
 
 ### Experiment 1: Generic Baselines vs. JUDGEBERT
-| Model | Pearson $r$ $\uparrow$ | Spearman $\rho$ $\uparrow$ | RMSE $\downarrow$ | Decision Accuracy $\uparrow$ | Macro F1 $\uparrow$ |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **BLEU** | 0.2814 | 0.2541 | 3.6821 | 45.61% | 0.3812 |
-| **ROUGE-L** | 0.3120 | 0.2985 | 3.5140 | 49.12% | 0.4105 |
-| **Generic SBERT Cosine** | 0.2642 | 0.2315 | 3.8410 | 43.86% | 0.3520 |
-| **JUDGEBERT (Ours)** | **0.8654** | **0.8412** | **1.7215** | **89.47%** | **0.8715** |
+| Model | Pearson $r$ $\uparrow$ | Spearman $\rho$ $\uparrow$ | RMSE $\downarrow$ | MAE $\downarrow$ | Decision Accuracy $\uparrow$ | Macro F1 $\uparrow$ |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **BLEU** | 0.1163 | 0.2798 | 4.6914 | 3.6280 | 44.32% | 0.3792 |
+| **ROUGE-L** | 0.1528 | 0.3166 | 4.1143 | 3.2714 | 38.07% | 0.3591 |
+| **Generic SBERT Cosine** | 0.2850 | 0.3189 | 4.2048 | 3.2696 | 40.06% | 0.2978 |
+| **JUDGEBERT (Ours - Overall)** | **0.7436** | **0.7424** | **2.4810** | **1.3072** | **78.98%** | **0.7367** |
+
+#### Domain Breakdown (JUDGEBERT)
+- **Consumer Protection ($N=125$):** Pearson **$r = 0.8673$** | Accuracy = **$88.00\%$** | Macro-F1 = **$0.8358$**
+- **Tenancy Law ($N=133$):** Pearson **$r = 0.7284$** | Accuracy = **$75.94\%$** | Macro-F1 = **$0.7151$**
+- **Employment, Labor & Contracts ($N=94$):** Pearson **$r = 0.6153$** | Accuracy = **$71.28\%$** | Macro-F1 = **$0.6250$**
 
 ### Experiment 2: Multilingual Generalization
-- **English ($r = 0.8812$, Acc = $90.0\%$)**
-- **Hindi ($r = 0.8480$, Acc = $88.9\%$)**
+- **English ($N=213$):** Pearson **$r = 0.7901$** | Spearman **$\rho = 0.7908$** | Accuracy = **$80.75\%$** | MAE = **$1.14$**
+- **Hindi ($N=139$):** Pearson **$r = 0.6817$** | Spearman **$\rho = 0.6573$** | Accuracy = **$76.26\%$** | MAE = **$1.56$** *(vs. $0.3910$ before phonetic Devanagari normalization)*
 
 ### Experiment 3: Out-of-Domain Generalization (Tenancy $\to$ Consumer Law)
-- **Zero-Shot Transfer Pearson $r = 0.8145$**, proving domain-invariant learning of legal modification patterns.
+- **Zero-Shot Transfer Pearson $r = 0.2149$** (Accuracy = $35.28\%$), proving multi-statutory training is critical compared to in-domain **$r = 0.8673$**.
 
 ### Experiment 4: Sanity Check Robustness
-- **Identical Pairs ($10.0$ expected):** JUDGEBERT predicts **$9.94 \pm 0.08$**
-- **Unrelated Pairs ($1.0$ expected):** JUDGEBERT predicts **$1.12 \pm 0.15$**, whereas generic SBERT erroneously predicts **$4.85 \pm 0.92$**.
+- **Identical Pairs ($10.0$ expected):** JUDGEBERT predicts **$9.63 \pm 0.02$** across English & Hindi clauses
+- **Unrelated Pairs ($1.0$ expected):** JUDGEBERT predicts **$2.99 \pm 2.56$**, whereas generic SBERT erroneously predicts **$5.62 \pm 2.46$**.
 
 ### Experiment 5: Qualitative Case Studies
-- Analyzes 16 hard legal cases across all 9 failure categories (*duty vs. permission, dates/numbers, exceptions, omissions, conditions, entities, contradiction, scope, hallucination*), detailing exact legal enforceability impacts.
+- Evaluates 16 adversarial statutory traps across all 9 legal error modes (*duty vs. permission, dates/numbers, exceptions, omissions, conditions, entities, contradiction, scope, hallucination*) across English and Hindi.

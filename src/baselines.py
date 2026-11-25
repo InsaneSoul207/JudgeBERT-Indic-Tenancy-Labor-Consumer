@@ -11,6 +11,10 @@ Includes:
    - TF-IDF Cosine Similarity (fast deterministic lexical vector baseline)
 """
 
+import os
+os.environ["USE_TF"] = "0"
+os.environ["HF_HOME"] = os.path.expanduser("~/.cache/huggingface")
+os.environ["HF_HUB_CACHE"] = os.path.expanduser("~/.cache/huggingface/hub")
 import re
 import math
 from collections import Counter

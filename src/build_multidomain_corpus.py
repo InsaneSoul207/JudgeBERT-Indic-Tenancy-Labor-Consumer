@@ -32,8 +32,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 try:
     from src.labor_contracts_expansion import EXTRA_LABOR_STATUTORY_EN, EXTRA_LABOR_STATUTORY_HI
+    from src.hindi_legal_enhancement import HINDI_DEONTIC_STATUTORY_DATA
 except ImportError:
     from labor_contracts_expansion import EXTRA_LABOR_STATUTORY_EN, EXTRA_LABOR_STATUTORY_HI
+    from hindi_legal_enhancement import HINDI_DEONTIC_STATUTORY_DATA
 
 # ---------------------------------------------------------------------------
 # CONSUMER PROTECTION STATUTORY CLAUSES - ENGLISH (CPA 2019 & E-Commerce Rules)
@@ -802,12 +804,17 @@ def build_multidomain_dataset():
             })
             pair_counter += 1
 
-    # Load initial full_dataset.csv (consumer protection baseline pairs)
-    if os.path.exists("data/full_dataset.csv"):
-        df_orig = pd.read_csv("data/full_dataset.csv")
-        cp_orig = df_orig[df_orig["domain"] == "consumer_protection"]
-        print(f"Loaded baseline consumer protection pairs: {len(cp_orig)}")
-        for _, r in cp_orig.iterrows():
+    # Load baseline consumer protection pairs cleanly from build_dataset.py (idempotent, never self-feeding)
+    try:
+        from data.build_dataset import generate_clauses
+        base_cp = []
+        for lang_code in ["en", "hi"]:
+            for item in generate_clauses(lang_code, "consumer_protection", 85):
+                item["language"] = lang_code
+                item["domain"] = "consumer_protection"
+                base_cp.append(item)
+        print(f"Loaded baseline consumer protection seed pairs: {len(base_cp)}")
+        for r in base_cp:
             dataset.append({
                 "id": f"PJ-{pair_counter:05d}",
                 "language": r["language"],
@@ -820,6 +827,8 @@ def build_multidomain_dataset():
                 "explanation": str(r.get("explanation", ""))
             })
             pair_counter += 1
+    except Exception as e:
+        print(f"Note: build_dataset consumer seed skipped ({e})")
 
     # 2. Add Consumer Protection clauses (English & Hindi)
     consumer_base = []
@@ -883,13 +892,14 @@ def build_multidomain_dataset():
     print(f"\nCurrent multi-domain dataset size before expansion: {len(df_current)}")
     print(df_current["domain"].value_counts())
 
-    # 4. Systematic Legal Expansion for Consumer & Labor to scale up towards >= 2,500 pairs
+    # 4. Systematic Legal Expansion for Consumer & Labor to balance Tenancy (~1,015 pairs)
     expanded_rows = []
     
-    # Process all preserved rows across domains to create comprehensive balanced variants
-    preserved_all = df_current[df_current["decision"] == "Preserved"]
+    # Process Consumer and Labor preserved rows to build balanced variants without bloating Tenancy
+    non_tenancy = df_current[df_current["domain"] != "tenancy"]
+    preserved_all = non_tenancy[non_tenancy["decision"] == "Preserved"]
 
-    for _, r in preserved_all.iterrows():
+    for row_idx, (_, r) in enumerate(preserved_all.iterrows()):
         dom = r["domain"]
         lang = r["language"]
         orig = r["original"]
@@ -1065,19 +1075,24 @@ def build_multidomain_dataset():
                         "explanation": "Specific statutory timeline or amount generalized to vague discretionary standard."
                     })
 
-            # Hallucinated fine
-            if "shall" in orig.lower() or "must" in orig.lower():
-                halluc = simp.rstrip(".") + " with a mandatory non-bailable prison sentence of 10 years."
+            # Hallucinated sanction (varied & capped so it doesn't skew model toward suffix shortcuts)
+            if row_idx % 3 == 0 and ("shall" in orig.lower() or "must" in orig.lower()):
+                halluc_templates = [
+                    " and failing this results in immediate forfeiture of all personal bank accounts.",
+                    " alongside a mandatory non-bailable prison term of 7 years.",
+                    " and permanently revokes all citizenship and passport privileges."
+                ]
+                halluc = simp.rstrip(".") + halluc_templates[row_idx % len(halluc_templates)]
                 expanded_rows.append({
                     "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
                     "language": "en",
                     "domain": dom,
                     "original": orig,
                     "simplified": halluc,
-                    "lmp_score": 2.8,
+                    "lmp_score": 2.6,
                     "decision": "Not Preserved",
                     "error_category": "hallucination",
-                    "explanation": "Hallucinated severe criminal sanction."
+                    "explanation": "Hallucinated severe extra-statutory penalty."
                 })
 
         elif lang == "hi":
@@ -1222,18 +1237,106 @@ def build_multidomain_dataset():
                         "explanation": "विधिक समय सीमा या राशि को शिथिल व अस्पष्ट किया गया।"
                     })
 
-            # Hindi Hallucination
-            halluc_hi = simp.rstrip("।") + " तथा 20 लाख रुपये का अतिरिक्त जुर्माना देना होगा।"
+            # Hindi Entity Role Swap
+            ent_hi = simp
+            entity_swaps = [
+                ("उपभोक्ता को", "विक्रेता को"),
+                ("ग्राहक को", "कंपनी को"),
+                ("कर्मचारी को", "मालिक को"),
+                ("मजदूर को", "नियोजक को"),
+                ("महिला कर्मचारी", "नियोजक स्वयं"),
+            ]
+            for sw, tw in entity_swaps:
+                if sw in ent_hi and tw not in ent_hi:
+                    ent_hi = ent_hi.replace(sw, tw)
+                    break
+            if ent_hi != simp:
+                expanded_rows.append({
+                    "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
+                    "language": "hi",
+                    "domain": dom,
+                    "original": orig,
+                    "simplified": ent_hi,
+                    "lmp_score": 1.4,
+                    "decision": "Not Preserved",
+                    "error_category": "entity",
+                    "explanation": "विधिक पक्षकारों के अधिकार व दायित्व आपस में बदल दिए गए।"
+                })
+
+            # Hindi Exception / Condition Removal
+            if any(w in simp for w in ["के बिना", "के अलावा", "यदि ", "जब तक", "बशर्ते", "सिवाय"]):
+                cond_hi = simp
+                for sw, tw in [
+                    ("केवल ", "हमेशा "),
+                    ("यदि ", "बिना किसी शर्त के "),
+                    ("जब तक कि", "भले ही"),
+                    ("के अलावा", "समेत सभी मामलों में")
+                ]:
+                    cond_hi = cond_hi.replace(sw, tw)
+                if cond_hi != simp:
+                    expanded_rows.append({
+                        "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
+                        "language": "hi",
+                        "domain": dom,
+                        "original": orig,
+                        "simplified": cond_hi,
+                        "lmp_score": 4.3,
+                        "decision": "Partially Preserved",
+                        "error_category": "exception",
+                        "explanation": "सांविधिक शर्त या अपवाद खंड का विलोप।"
+                    })
+
+            # Varied & capped Hindi Hallucination (1 in 3 to preserve class balance)
+            if row_idx % 3 == 0:
+                hi_hallucs = [
+                    " तथा उल्लंघन पर 10 वर्ष के कठोर कारावास का प्रावधान है।",
+                    " तथा दोषी पक्ष की सारी पैतृक संपत्ति सरकार द्वारा जब्त कर ली जाएगी।",
+                    " तथा मामले में 20 लाख रुपये का अतिरिक्त अर्थदंड देय होगा।"
+                ]
+                halluc_hi = simp.rstrip("।") + hi_hallucs[row_idx % len(hi_hallucs)]
+                expanded_rows.append({
+                    "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
+                    "language": "hi",
+                    "domain": dom,
+                    "original": orig,
+                    "simplified": halluc_hi,
+                    "lmp_score": 2.7,
+                    "decision": "Not Preserved",
+                    "error_category": "hallucination",
+                    "explanation": "काल्पनिक अतिरिक्त दंड प्रावधान की प्रविष्टि।"
+                })
+
+    # Add dedicated curated deontic, exception, and labor enhancement pairs (respecting item language)
+    for item in HINDI_DEONTIC_STATUTORY_DATA:
+        orig = item["clause"]
+        simp_pres = item["simplified_preserved"]
+        dom = item["domain"]
+        src = item["source"]
+        lang_code = item.get("language", "hi")
+        
+        expanded_rows.append({
+            "id": f"PJ-ENH-{len(expanded_rows)+1:05d}",
+            "language": lang_code,
+            "domain": dom,
+            "original": orig,
+            "simplified": simp_pres,
+            "lmp_score": 9.5,
+            "decision": "Preserved",
+            "error_category": "none",
+            "explanation": f"Preserved statutory provision ({src})." if lang_code == "en" else f"सटीक विधिक सरल रूप सुरक्षित रखा गया ({src})।"
+        })
+        
+        for pert_simp, score, dec, err, exp in item["perturbations"]:
             expanded_rows.append({
-                "id": f"PJ-SYN-{len(expanded_rows)+1:05d}",
-                "language": "hi",
+                "id": f"PJ-ENH-{len(expanded_rows)+1:05d}",
+                "language": lang_code,
                 "domain": dom,
                 "original": orig,
-                "simplified": halluc_hi,
-                "lmp_score": 3.0,
-                "decision": "Not Preserved",
-                "error_category": "hallucination",
-                "explanation": "काल्पनिक भारी वित्तीय जुर्माने की प्रविष्टि।"
+                "simplified": pert_simp,
+                "lmp_score": float(score),
+                "decision": dec,
+                "error_category": err,
+                "explanation": exp
             })
 
     # Combine all

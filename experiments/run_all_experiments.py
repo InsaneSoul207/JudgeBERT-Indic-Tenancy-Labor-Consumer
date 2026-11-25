@@ -11,6 +11,7 @@ Runs and saves results for:
 """
 
 import os
+os.environ["USE_TF"] = "0"
 os.environ["HF_HOME"] = os.path.expanduser("~/.cache/huggingface")
 os.environ["HF_HUB_CACHE"] = os.path.expanduser("~/.cache/huggingface/hub")
 import sys
@@ -134,7 +135,8 @@ def run_experiment_3(df_all, base_model):
         output_dir="models/ood_tenancy",
         base_model=base_model,
         epochs=3,
-        batch_size=16
+        batch_size=16,
+        augment_contrastive=False
     )
     
     ood_predictor = JudgeBertPredictor(model_path=ood_model_path, base_model_name=base_model)
@@ -295,9 +297,9 @@ def main():
         val_path="data/val.csv",
         output_dir="models",
         base_model=base_model,
-        epochs=8,
+        epochs=12,
         batch_size=16,
-        lr=2.5e-5
+        lr=3.5e-5
     )
     
     # 2. Initialize Predictor & Baseline Evaluator

@@ -1,16 +1,16 @@
 {
   "identical": {
     "ground_truth": 10.0,
-    "judgebert_mean": 8.913,
-    "judgebert_std": 0.5171490673826423,
+    "judgebert_mean": 9.626,
+    "judgebert_std": 0.019841477024816794,
     "sbert_mean": 10.0,
-    "sbert_std": 2.93534753836866e-07
+    "sbert_std": 3.094127976055461e-07
   },
   "unrelated": {
     "ground_truth": 1.0,
-    "judgebert_mean": 3.4455,
-    "judgebert_std": 1.6252302670860617,
-    "sbert_mean": 5.615694999694824,
-    "sbert_std": 2.456995964050293
+    "judgebert_mean": 2.9905,
+    "judgebert_std": 2.5635942592999754,
+    "sbert_mean": 5.615695953369141,
+    "sbert_std": 2.456996202468872
   }
 }

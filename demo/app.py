@@ -190,11 +190,12 @@ with tabs[1]:
         overall_data = e1.get("overall", e1)
         df_e1 = pd.DataFrame(overall_data).T
         cols = ["pearson_r", "spearman_rho", "rmse", "mae", "accuracy", "macro_f1"]
-        st.dataframe(df_e1[cols].style.highlight_max(subset=["pearson_r", "spearman_rho", "accuracy", "macro_f1"], color="#bbf7d0").highlight_min(subset=["rmse", "mae"], color="#bbf7d0"))
+        hi_props = "background-color: #166534; color: #ffffff; font-weight: bold;"
+        st.dataframe(df_e1[cols].style.highlight_max(subset=["pearson_r", "spearman_rho", "accuracy", "macro_f1"], props=hi_props).highlight_min(subset=["rmse", "mae"], props=hi_props))
         if "by_domain" in e1:
             st.markdown("#### Stratified Domain Breakdown (JUDGEBERT)")
             df_dom = pd.DataFrame(e1["by_domain"]).T
-            st.dataframe(df_dom[cols].style.highlight_max(subset=["pearson_r", "spearman_rho", "accuracy", "macro_f1"], color="#bbf7d0"))
+            st.dataframe(df_dom[cols].style.highlight_max(subset=["pearson_r", "spearman_rho", "accuracy", "macro_f1"], props=hi_props))
     else:
         st.info("Run `python experiments/run_all_experiments.py` to populate live experiment tables.")
 

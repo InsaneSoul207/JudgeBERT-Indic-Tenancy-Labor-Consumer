@@ -34,130 +34,291 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------------------------
-# Scoped Editorial Styling (Theme-Adaptive, Zero Icons/Emojis)
+# Parchment & Forest-Green Theme Styling (Zero Icons/Emojis)
+# Palette:
+#   Page BG:       #F3ECDB (Parchment)
+#   Surface/Card:  #FFFCF6 (Warm White)
+#   Accent/Heading:#3E503C (Forest Green)
+#   Body/Input:    #262B25 (Dark Charcoal)
+#   Borders/Div:   #7F886A (Muted Olive)
+#   Active Accent: #FF6F3D (Orange)
 # ---------------------------------------------------------------------------
 st.markdown(
     """
     <style>
+    html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+        background-color: #F3ECDB !important;
+        color: #262B25 !important;
+    }
+    [data-testid="stHeader"] {
+        background-color: #F3ECDB !important;
+        border-bottom: 1px solid rgba(127, 136, 106, 0.25);
+    }
+    [data-testid="stSidebar"], [data-testid="stSidebar"] > div:first-child {
+        background-color: #FFFCF6 !important;
+        border-right: 1px solid #7F886A !important;
+        color: #262B25 !important;
+    }
     .block-container {
-        padding-top: 1.5rem;
-        padding-bottom: 2.2rem;
-        max-width: 1280px;
+        padding-top: 2.6rem;
+        padding-bottom: 1.8rem;
+        max-width: 1220px;
     }
+    /* Headings, labels, and body copy */
+    h1, h2, h3, h4, .stSubheader, [data-testid="stHeading"] * {
+        color: #3E503C !important;
+    }
+    p, li, label, span, .stMarkdown, .stCaption {
+        color: #262B25;
+    }
+    [data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] label {
+        color: #3E503C !important;
+        font-weight: 600 !important;
+        font-size: 0.86rem !important;
+    }
+    /* Compact Header */
     .jb-header {
-        border-bottom: 1px solid rgba(148, 163, 184, 0.28);
-        padding-bottom: 0.9rem;
-        margin-bottom: 1.1rem;
-    }
-    .jb-kicker {
-        font-size: 0.74rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #60a5fa;
-        margin-bottom: 0.25rem;
+        margin: 0 0 0.55rem 0;
+        padding-bottom: 0.45rem;
     }
     .jb-title {
-        font-size: 1.95rem;
-        font-weight: 700;
+        font-size: 1.85rem;
+        font-weight: 800;
         letter-spacing: -0.02em;
-        line-height: 1.18;
-        margin: 0 0 0.35rem 0;
+        line-height: 1.05;
+        color: #3E503C !important;
+        margin: 0;
+    }
+    .jb-accent {
+        width: 56px;
+        height: 4px;
+        background-color: #FF6F3D;
+        border-radius: 2px;
+        margin: 0.35rem 0 0.38rem 0;
     }
     .jb-subtitle {
-        font-size: 0.90rem;
-        opacity: 0.82;
-        margin: 0;
-        line-height: 1.45;
+        font-size: 0.96rem;
+        font-weight: 600;
+        color: #262B25;
+        margin: 0 0 0.22rem 0;
+        line-height: 1.3;
     }
+    .jb-meta {
+        font-size: 0.78rem;
+        color: #3E503C;
+        opacity: 0.9;
+        margin: 0;
+        line-height: 1.35;
+    }
+    /* Dropdowns and Textareas (#FFFCF6 warm white + #7F886A olive border + #262B25 text) */
+    [data-baseweb="select"] > div,
+    [data-baseweb="input"] > div,
+    [data-baseweb="textarea"],
+    [data-testid="stTextArea"] > div > div,
+    [data-testid="stTextInput"] > div > div {
+        background-color: #FFFCF6 !important;
+        border: 1px solid #7F886A !important;
+        border-radius: 6px !important;
+        color: #262B25 !important;
+    }
+    [data-baseweb="select"] *,
+    textarea,
+    input[type="text"] {
+        color: #262B25 !important;
+        background-color: #FFFCF6 !important;
+        caret-color: #262B25 !important;
+    }
+    div[data-baseweb="popover"],
+    ul[role="listbox"],
+    li[role="option"] {
+        background-color: #FFFCF6 !important;
+        color: #262B25 !important;
+    }
+    li[role="option"]:hover, li[role="option"][aria-selected="true"] {
+        background-color: #F3ECDB !important;
+        color: #3E503C !important;
+        font-weight: 600;
+    }
+    [data-testid="stTextArea"] textarea {
+        min-height: 140px !important;
+        line-height: 1.5 !important;
+    }
+    /* Primary Evaluate Button (#3E503C forest green + white text) & Secondary Clear */
+    button[kind="primary"],
+    button[data-testid="stBaseButton-primary"] {
+        background-color: #3E503C !important;
+        border: 1px solid #3E503C !important;
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+    }
+    button[kind="primary"] *,
+    button[data-testid="stBaseButton-primary"] * {
+        color: #FFFFFF !important;
+    }
+    button[kind="primary"]:hover,
+    button[data-testid="stBaseButton-primary"]:hover {
+        background-color: #2F3E2D !important;
+        border-color: #2F3E2D !important;
+    }
+    button[kind="secondary"],
+    button[data-testid="stBaseButton-secondary"] {
+        background-color: #FFFCF6 !important;
+        border: 1px solid #7F886A !important;
+        color: #3E503C !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+    }
+    button[kind="secondary"] *,
+    button[data-testid="stBaseButton-secondary"] * {
+        color: #3E503C !important;
+    }
+    /* Dividers (#7F886A muted olive) */
+    hr, [data-testid="stDivider"] {
+        border: none !important;
+        border-top: 1px solid #7F886A !important;
+        margin: 0.85rem 0 !important;
+    }
+    /* Tabs (#3E503C labels, #FF6F3D active underline, responsive wrap) */
+    .stTabs [data-baseweb="tab-list"] {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.25rem 0.65rem !important;
+        border-bottom: 1.5px solid #7F886A !important;
+        margin-bottom: 0.6rem !important;
+        overflow: visible !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        padding: 0.42rem 0.65rem !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        color: #3E503C !important;
+        background: transparent !important;
+        white-space: nowrap !important;
+    }
+    .stTabs [data-baseweb="tab"] p,
+    .stTabs [data-baseweb="tab"] span {
+        color: #3E503C !important;
+    }
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        border-bottom: 3px solid #FF6F3D !important;
+        color: #3E503C !important;
+    }
+    .stTabs [data-baseweb="tab-highlight"] {
+        display: none !important;
+    }
+    /* Cards & Expanders (#FFFCF6 + #7F886A border) */
     .jb-card {
-        border: 1px solid rgba(148, 163, 184, 0.25);
+        border: 1px solid #7F886A;
         border-radius: 8px;
-        padding: 0.85rem 1.0rem;
-        background: rgba(148, 163, 184, 0.06);
-        margin-bottom: 0.75rem;
+        padding: 0.85rem 1rem;
+        background-color: #FFFCF6;
+        margin-bottom: 0.7rem;
+        color: #262B25;
     }
     .jb-kpi {
-        min-height: 128px;
+        min-height: 118px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
     }
     .jb-kpi-label {
         font-size: 0.72rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        opacity: 0.72;
+        color: #3E503C;
         margin-bottom: 0.2rem;
     }
     .jb-kpi-val {
-        font-size: clamp(1.05rem, 1.35vw, 1.36rem);
+        font-size: clamp(1.08rem, 1.3vw, 1.38rem);
         font-weight: 700;
         line-height: 1.2;
+        color: #262B25;
         margin-bottom: 0.15rem;
-        white-space: nowrap;
     }
     .jb-kpi-delta {
         font-size: 0.78rem;
-        opacity: 0.78;
+        color: #3E503C;
     }
+    /* Verdict Badges: Preserved, Partial, Not Preserved */
     .jb-pill {
         display: inline-block;
-        padding: 0.22rem 0.65rem;
+        padding: 0.24rem 0.72rem;
         border-radius: 4px;
-        font-size: 0.76rem;
+        font-size: 0.78rem;
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
     }
     .jb-pill-green {
-        background: rgba(22, 163, 74, 0.18);
-        color: #22c55e;
-        border: 1px solid rgba(34, 197, 94, 0.45);
+        background-color: #E3F1E8;
+        color: #1F4E32;
+        border: 1.5px solid #2E6F40;
     }
     .jb-pill-amber {
-        background: rgba(217, 119, 6, 0.18);
-        color: #f59e0b;
-        border: 1px solid rgba(245, 158, 11, 0.45);
+        background-color: #FEF3C7;
+        color: #92400E;
+        border: 1.5px solid #D97706;
     }
     .jb-pill-red {
-        background: rgba(220, 38, 38, 0.18);
-        color: #f87171;
-        border: 1px solid rgba(248, 113, 113, 0.45);
+        background-color: #FEE2E2;
+        color: #991B1B;
+        border: 1.5px solid #DC2626;
     }
+    /* Diff Box & Alerts */
     .jb-diff-box {
-        border: 1px solid rgba(148, 163, 184, 0.28);
+        border: 1px solid #7F886A;
         border-radius: 8px;
         padding: 0.85rem 1rem;
-        background: rgba(148, 163, 184, 0.04);
-        font-size: 0.94rem;
+        background-color: #FFFCF6;
+        color: #262B25;
+        font-size: 0.93rem;
         line-height: 1.65;
-        margin-bottom: 0.85rem;
+        margin-bottom: 0.75rem;
     }
     .diff-del {
-        background: rgba(220, 38, 38, 0.22);
-        color: #fca5a5;
+        background-color: #FEE2E2;
+        color: #991B1B;
         text-decoration: line-through;
-        padding: 0.06rem 0.26rem;
+        padding: 0.05rem 0.25rem;
         border-radius: 3px;
     }
     .diff-add {
-        background: rgba(22, 163, 74, 0.22);
-        color: #86efac;
-        padding: 0.06rem 0.26rem;
+        background-color: #DCFCE7;
+        color: #166534;
+        padding: 0.05rem 0.25rem;
         border-radius: 3px;
         font-weight: 600;
     }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 0.4rem;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    [data-testid="stAlert"],
+    [data-testid="stAlert"] > div {
+        background-color: #FFFCF6 !important;
+        border-color: #7F886A !important;
+        color: #262B25 !important;
     }
-    .stTabs [data-baseweb="tab"] {
-        padding: 0.45rem 0.65rem;
-        font-weight: 600;
-        font-size: 0.82rem;
-        white-space: nowrap;
+    [data-testid="stAlert"] {
+        border: 1px solid #7F886A !important;
+        border-radius: 6px !important;
+    }
+    [data-testid="stExpander"] {
+        background-color: #FFFCF6 !important;
+        border: 1px solid #7F886A !important;
+        border-radius: 8px !important;
+    }
+    @media (max-width: 768px) {
+        .block-container {
+            padding-top: 2.4rem;
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+        }
+        .jb-title {
+            font-size: 1.55rem;
+        }
+        .stTabs [data-baseweb="tab"] {
+            font-size: 0.80rem !important;
+            padding: 0.35rem 0.5rem !important;
+        }
     }
     </style>
     """,
@@ -188,55 +349,51 @@ PRESET_EXAMPLES = {
         "orig": "The tenant shall pay rent by the fifth of every month, unless otherwise agreed in writing.",
         "simp": "The tenant may pay rent around the fifth of every month.",
         "lang": "en",
-        "domain": "Tenancy Law",
     },
     "EN | Tenancy: Exception Dropped (unless omitted)": {
         "orig": "The tenant shall not keep domestic pets on the premises without obtaining prior written authorization from the landlord.",
         "simp": "The tenant is strictly forbidden from keeping any pets inside the rental property.",
         "lang": "en",
-        "domain": "Tenancy Law",
     },
-    "EN | Tenancy: Timeline Altered (30 days -> 3 months)": {
-        "orig": "The landlord shall return the security deposit within thirty days following formal handover of keys.",
-        "simp": "The landlord must refund the deposit within three months after receiving the keys.",
+    "EN | Tenancy: Timeline Altered (15 days -> 6 months)": {
+        "orig": "The Landlord shall refund the deposit within 15 days following formal handover of keys.",
+        "simp": "The landlord shall refund the deposit within six months following formal handover of keys.",
         "lang": "en",
-        "domain": "Tenancy Law",
     },
-    "EN | Consumer: Liability Entity Swap": {
-        "orig": "The manufacturer shall be strictly liable in a product liability action for harm caused to a consumer by a defective product.",
-        "simp": "The consumer is strictly liable for any harm caused by defects in the purchased product.",
+    "EN | Consumer: Valid Plain-English Simplification": {
+        "orig": "A consumer who purchases a defective product has the right to demand full replacement or refund within 30 days of delivery.",
+        "simp": "If a buyer receives a faulty product, they can ask for a complete replacement or a full refund within 30 days of delivery.",
         "lang": "en",
-        "domain": "Consumer Protection Law",
     },
     "EN | Labor: Gratuity Entity Swap (Employer -> Employee)": {
         "orig": "The employer shall arrange to pay the amount of gratuity within thirty days from the date it becomes payable to the person to whom the gratuity is payable.",
         "simp": "Employees are required to pay gratuity to the employer within 30 days of resigning.",
         "lang": "en",
-        "domain": "Employment, Labor & Contracts",
     },
     "HI | Tenancy: Obligation Diluted (करेगा -> चाहे तो)": {
         "orig": "किरायेदार प्रत्येक अंग्रेजी कैलेंडर माह की पांचवीं तारीख तक निर्धारित बैंक खाते में मासिक किराये का भुगतान करेगा।",
         "simp": "किरायेदार चाहे तो महीने की 5 तारीख के आसपास किराया दे सकता है।",
         "lang": "hi",
-        "domain": "Tenancy Law",
     },
-    "HI | Consumer: Statutory Contradiction": {
-        "orig": "अनुचित व्यापार व्यवहार तथा भ्रामक विज्ञापनों पर रोक लगाना केंद्रीय उपभोक्ता संरक्षण प्राधिकरण का वैधानिक दायित्व है।",
-        "simp": "कंपनियों को उपभोक्ताओं को लुभाने के लिए झूठे और भ्रामक विज्ञापन देने की पूरी आजादी है।",
+    "HI | Tenancy: Party Entity Swap (मकान मालिक -> किरायेदार)": {
+        "orig": "मकान पर लगने वाले नगर निगम टैक्स का भुगतान मकान मालिक द्वारा किया जाएगा।",
+        "simp": "मकान के सारे म्यूनिसिपल टैक्स और वाटर सेस किरायेदार को भरने होंगे।",
         "lang": "hi",
-        "domain": "Consumer Protection Law",
+    },
+    "HI | Consumer: Hallucinated Penalty (50,000 रुपये जुर्माना)": {
+        "orig": "उपभोक्ता किसी भी अनुचित व्यापार व्यवहार के विरुद्ध जिला उपभोक्ता विवाद प्रतितोष आयोग में शिकायत दर्ज कर सकता है।",
+        "simp": "उपभोक्ता आयोग में शिकायत करने से पहले ग्राहक को विक्रेता को 50,000 रुपये का जुर्माना भरना अनिवार्य है।",
+        "lang": "hi",
     },
     "HI | Labor: Bonus Obligation Preserved (Valid)": {
         "orig": "प्रत्येक नियोजक प्रत्येक लेखा वर्ष के संबंध में प्रत्येक कर्मचारी को न्यूनतम बोनस का संदाय करेगा जो कर्मचारी द्वारा उस लेखा वर्ष के दौरान अर्जित वेतन या मजदूरी का 8.33 प्रतिशत होगा।",
         "simp": "मालिक को हर साल हर पात्र कर्मचारी को सालाना वेतन का कम से कम 8.33 प्रतिशत न्यूनतम बोनस के रूप में अनिवार्य रूप से देना होगा।",
         "lang": "hi",
-        "domain": "Employment, Labor & Contracts",
     },
     "EN | Sanity Anchor: Verbatim Match": {
         "orig": "The Lessee covenants to keep the exterior walls, roof, and structural foundations in sound repair.",
         "simp": "The Lessee covenants to keep the exterior walls, roof, and structural foundations in sound repair.",
         "lang": "en",
-        "domain": "Tenancy Law",
     },
 }
 
@@ -280,21 +437,27 @@ def _render_token_diff_html(orig: str, simp: str) -> str:
     return " ".join(chunks)
 
 
-def _style_plotly(fig: go.Figure, height: int = 330, y_title: str = "", y_range: list[float] | None = None) -> go.Figure:
+def _style_plotly(fig: go.Figure, height: int = 320, y_title: str = "", y_range: list[float] | None = None) -> go.Figure:
     fig.update_layout(
         height=height,
         margin=dict(l=40, r=20, t=42, b=36),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(size=12),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        paper_bgcolor="#FFFCF6",
+        plot_bgcolor="#FFFCF6",
+        font=dict(size=12, color="#262B25"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#262B25")),
         yaxis=dict(
             title=y_title,
             range=y_range,
-            gridcolor="rgba(148, 163, 184, 0.22)",
-            zerolinecolor="rgba(148, 163, 184, 0.35)",
+            gridcolor="rgba(127, 136, 106, 0.25)",
+            zerolinecolor="rgba(127, 136, 106, 0.45)",
+            tickfont=dict(color="#262B25"),
+            title_font=dict(color="#3E503C"),
         ),
-        xaxis=dict(gridcolor="rgba(148, 163, 184, 0.1)"),
+        xaxis=dict(
+            gridcolor="rgba(127, 136, 106, 0.14)",
+            tickfont=dict(color="#262B25"),
+            title_font=dict(color="#3E503C"),
+        ),
     )
     return fig
 
@@ -335,14 +498,14 @@ except Exception as exc:
     st.error(f"Model initialization failed: {exc}")
 
 # ---------------------------------------------------------------------------
-# Sidebar: Project Overview & Corpus Metadata
+# Sidebar: Technical Reference (Zero Team Names or Student IDs)
 # ---------------------------------------------------------------------------
 
 with st.sidebar:
-    st.markdown("### JUDGEBERT // LegalNLP")
-    st.caption("CSET 346 – Natural Language Processing | Project PJ_08")
+    st.markdown("### Architecture & Corpus")
+    st.caption("JUDGEBERT Multilingual Evaluation Reference")
     st.divider()
-    st.markdown("**Model Architecture**")
+    st.markdown("**Model Configuration**")
     st.markdown(
         "- Backbone: `all-MiniLM-L6-v2` Cross-Encoder\n"
         "- Parameters: `22,866,446` (100% fine-tuned)\n"
@@ -358,27 +521,18 @@ with st.sidebar:
         "- Employment & Labor: `706` (`386 EN / 320 HI`)\n"
         "- Splits: Train `2,013` | Val `330` | Test `352`"
     )
-    st.divider()
-    st.markdown("**Team (Batch 52, Bennett Univ.)**")
-    st.caption(
-        "Eshaan Mishra (S24CSEU0795), Fairy Tyagi (S24CSEU0794), "
-        "Ansh Dixit (S24CSEU1018), Anvi Tyagi (S24CSEU1026)\n\n"
-        "Instructor: Dr. Surabhi Solanki"
-    )
 
 # ---------------------------------------------------------------------------
-# Main Header & Navigation Tabs
+# Compact Header & Responsive Navigation Tabs
 # ---------------------------------------------------------------------------
 
 st.markdown(
     """
     <div class="jb-header">
-      <div class="jb-kicker">Explainable Multilingual Legal Evaluation Suite (PJ_08)</div>
-      <div class="jb-title">JUDGEBERT: Legal Meaning Preservation Benchmark</div>
-      <p class="jb-subtitle">
-        Cross-attention evaluation of plain-language legal simplifications across English and Hindi statutes
-        (Tenancy Law, Consumer Protection, and Employment &amp; Labor), extending Beauchemin et al. (EMNLP 2025).
-      </p>
+      <h1 class="jb-title">JUDGEBERT</h1>
+      <div class="jb-accent"></div>
+      <p class="jb-subtitle">Multilingual Legal Meaning Preservation</p>
+      <p class="jb-meta">CSET 346 – Natural Language Processing &bull; Project ID: PJ_08 &bull; Instructor: Dr. Surabhi Solanki</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -386,15 +540,15 @@ st.markdown(
 
 tabs = st.tabs([
     "Evaluator",
-    "Exp 1: Baselines",
-    "Exp 2: EN vs HI",
-    "Exp 3: OOD",
-    "Exp 4: Sanity",
-    "Exp 5: Cases",
+    "Baselines",
+    "EN vs HI",
+    "OOD Transfer",
+    "Sanity Checks",
+    "Case Study",
 ])
 
 # ---------------------------------------------------------------------------
-# Tab 1: Interactive Clause Evaluator
+# Tab 1: Evaluator
 # ---------------------------------------------------------------------------
 
 def _apply_preset() -> None:
@@ -420,12 +574,11 @@ if "orig_input" not in st.session_state:
     st.session_state["lang_input"] = PRESET_EXAMPLES[first_key]["lang"]
 
 with tabs[0]:
-    st.subheader("Clause Pair Meaning Preservation Evaluator")
-
+    # Controls cleanly above both sentence boxes
     ctrl_col1, ctrl_col2 = st.columns([3.0, 1.2])
     with ctrl_col1:
         st.selectbox(
-            "Benchmark Preset",
+            "Benchmark Case",
             list(PRESET_EXAMPLES.keys()),
             key="preset_choice",
             on_change=_apply_preset,
@@ -438,24 +591,28 @@ with tabs[0]:
             format_func=lambda x: "English (en)" if x == "en" else "Hindi (hi)",
         )
 
+    # Equal-width/height side-by-side on desktop, automatically stacked Original then Simplified on narrow screens
     col_in1, col_in2 = st.columns(2)
     with col_in1:
-        orig_text = st.text_area("Original Statutory Clause (Source)", key="orig_input", height=130)
+        orig_text = st.text_area("Original Clause", key="orig_input", height=140)
     with col_in2:
-        simp_text = st.text_area("Simplified / Candidate Clause (Target)", key="simp_input", height=130)
+        simp_text = st.text_area("Simplified Clause", key="simp_input", height=140)
 
-    act_col1, act_col2, _ = st.columns([1.8, 1.1, 2.5])
-    evaluate_btn = act_col1.button("Evaluate Clause Pair", type="primary", use_container_width=True)
-    act_col2.button("Clear Inputs", on_click=_clear_inputs, use_container_width=True)
+    # Primary Evaluate Meaning Preservation action placed directly below both inputs
+    btn_col1, btn_col2, _ = st.columns([2.2, 0.85, 2.2])
+    evaluate_btn = btn_col1.button("Evaluate Meaning Preservation", type="primary", use_container_width=True)
+    btn_col2.button("Clear", on_click=_clear_inputs, use_container_width=True)
 
+    # Results directly beneath the button
     if evaluate_btn and model_ready:
         if not orig_text.strip() or not simp_text.strip():
-            st.warning("Enter both Original and Simplified clauses before evaluating.")
+            st.warning("Enter both Original Clause and Simplified Clause before evaluating.")
         else:
             jb_res = predictor.predict_pair(orig_text, simp_text)
             has_hi_script = any("\u0900" <= ch <= "\u097f" for ch in orig_text + simp_text)
             effective_lang = "hi" if has_hi_script else "en"
             diag = analyze_legal_discrepancy(orig_text, simp_text, lang=effective_lang)
+
             df_single = pd.DataFrame([{"id": "LIVE-01", "original": orig_text, "simplified": simp_text}])
             sbert_score = float(baseline_eval.run_sbert_baseline(df_single)["sbert_lmp_pred"].iloc[0])
             lex_res = baseline_eval.run_lexical_baselines(df_single).iloc[0]
@@ -467,8 +624,8 @@ with tabs[0]:
 
             st.divider()
             st.markdown(
-                f"<div style='display:flex; align-items:center; gap:0.8rem; margin-bottom:0.8rem;'>"
-                f"<span style='font-size:1.15rem; font-weight:700;'>Evaluation Verdict</span>"
+                f"<div style='display:flex; flex-wrap:wrap; align-items:center; gap:0.75rem; margin-bottom:0.75rem;'>"
+                f"<span style='font-size:1.12rem; font-weight:700; color:#3E503C;'>Evaluation Verdict</span>"
                 f"{_decision_badge_html(jb_res['decision'])}"
                 f"</div>",
                 unsafe_allow_html=True,
@@ -486,7 +643,6 @@ with tabs[0]:
                 "BLEU | ROUGE-L (1-10 scale)",
             )
 
-            # Bar Comparison Chart + Diff Inspector
             col_vis1, col_vis2 = st.columns([1.15, 1.0])
             with col_vis1:
                 st.markdown("**Model Score Comparison (1.0 - 10.0 Scale)**")
@@ -499,7 +655,7 @@ with tabs[0]:
                     lev_score,
                     float(lex_res["bleu_lmp_pred"]),
                 ]
-                bar_colors = ["#2563eb", "#f59e0b", "#64748b", "#64748b", "#64748b", "#64748b"]
+                bar_colors = ["#3E503C", "#FF6F3D", "#7F886A", "#7F886A", "#7F886A", "#7F886A"]
                 fig_live = go.Figure(
                     go.Bar(
                         x=chart_vals,
@@ -508,48 +664,53 @@ with tabs[0]:
                         marker_color=bar_colors,
                         text=[f"{v:.2f}" for v in chart_vals],
                         textposition="outside",
+                        textfont=dict(color="#262B25"),
                     )
                 )
                 fig_live.add_vline(
                     x=4.0,
                     line_dash="dot",
-                    line_color="#ef4444",
+                    line_color="#DC2626",
                     annotation_text="Cutoff 4.0",
                     annotation_position="top left",
+                    annotation_yshift=12,
                     annotation_font_size=10,
+                    annotation_font_color="#991B1B",
                 )
                 fig_live.add_vline(
                     x=8.0,
                     line_dash="dot",
-                    line_color="#22c55e",
+                    line_color="#2E6F40",
                     annotation_text="Preserved 8.0",
                     annotation_position="top right",
+                    annotation_yshift=12,
                     annotation_font_size=10,
+                    annotation_font_color="#1F4E32",
                 )
                 fig_live.update_layout(
                     height=275,
-                    margin=dict(l=10, r=25, t=30, b=24),
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    xaxis=dict(range=[0, 11.4], gridcolor="rgba(148, 163, 184, 0.2)"),
-                    yaxis=dict(autorange="reversed"),
+                    margin=dict(l=10, r=28, t=30, b=24),
+                    paper_bgcolor="#FFFCF6",
+                    plot_bgcolor="#FFFCF6",
+                    font=dict(color="#262B25"),
+                    xaxis=dict(range=[0, 11.5], gridcolor="rgba(127, 136, 106, 0.25)", tickfont=dict(color="#262B25")),
+                    yaxis=dict(autorange="reversed", tickfont=dict(color="#262B25")),
                 )
                 st.plotly_chart(fig_live, use_container_width=True)
 
             with col_vis2:
                 st.markdown("**Token-Level Edit Diff (Original vs. Simplified)**")
                 st.markdown(f"<div class='jb-diff-box'>{_render_token_diff_html(orig_text, simp_text)}</div>", unsafe_allow_html=True)
-                st.caption("Strikethrough red: removed/replaced statutory terms. Green: inserted/substituted terms.")
+                st.caption("Strikethrough red: removed/replaced terms. Green: inserted/substituted terms.")
 
-            # Diagnostics Row
             col_exp1, col_exp2 = st.columns(2)
             with col_exp1:
                 st.markdown("**Rule-Guided Legal Diagnostic**")
                 if diag["error_category"] != "none":
                     st.info(
-                        f"Symbolic Error Category: `{diag['error_category']}` | "
-                        f"Rule Hint: `{diag['decision']}` | "
-                        f"Script: `{'Hindi' if has_hi_script else 'English'}`"
+                        f"Symbolic Error Category: {diag['error_category']} | "
+                        f"Rule Hint: {diag['decision']} | "
+                        f"Script: {'Hindi' if has_hi_script else 'English'}"
                     )
                     st.write(f"**Legal Rationale:** {diag['explanation']}")
                     for diff in diag["key_differences"]:
@@ -557,16 +718,16 @@ with tabs[0]:
                 elif jb_res["decision"] != "Preserved":
                     st.warning(
                         f"Rule Overlay Status: No fixed keyword hit | "
-                        f"Neural Verdict Applies: `{jb_res['decision']}`"
+                        f"Neural Verdict Applies: {jb_res['decision']}"
                     )
                     st.write(
                         f"**Neuro-Symbolic Summary:** No fixed statutory keyword rule fired on surface tokens, "
                         f"but JUDGEBERT's cross-attention detected a semantic breach "
-                        f"(`{jb_res['error_category']}`, LMP `{jb_score:.2f}/10`). "
+                        f"({jb_res['error_category']}, LMP {jb_score:.2f}/10). "
                         f"Inspect highlighted spans in the Token-Level Edit Diff above."
                     )
                 else:
-                    st.success("Symbolic Error Category: `none` | Rule & Neural Verdict: `Preserved`")
+                    st.success("Symbolic Error Category: none | Rule & Neural Verdict: Preserved")
                     st.write(
                         "**Legal Rationale:** Core statutory obligations, entities, numbers, and caveats "
                         "align consistently across both neural and symbolic checks."
@@ -591,14 +752,15 @@ with tabs[0]:
                             f"Source:     {preprocess_legal_text(orig_text, True)}\n"
                             f"Simplified: {preprocess_legal_text(simp_text, True)}",
                             language="text",
+                            wrap_lines=True,
                         )
 
 # ---------------------------------------------------------------------------
-# Tab 2: Experiment 1 - Baselines vs JUDGEBERT
+# Tab 2: Baselines (Experiment 1)
 # ---------------------------------------------------------------------------
 
 with tabs[1]:
-    st.subheader("Experiment 1: Generic Baselines vs. JUDGEBERT (Test N = 352)")
+    st.subheader("Generic Baselines vs. JUDGEBERT (Test N = 352)")
     e1 = _load_json("experiments/results/exp1_baselines_vs_judgebert.json")
     if e1:
         overall = e1.get("overall", e1)
@@ -618,8 +780,8 @@ with tabs[1]:
             names = [DISPLAY_LABELS.get(k, k) for k in df_e1.index]
             fig_e1 = go.Figure(
                 data=[
-                    go.Bar(name="Pearson r", x=names, y=df_e1["pearson_r"], marker_color="#2563eb", text=[f"{v:.2f}" for v in df_e1["pearson_r"]], textposition="outside"),
-                    go.Bar(name="Macro-F1", x=names, y=df_e1["macro_f1"], marker_color="#0d9488", text=[f"{v:.2f}" for v in df_e1["macro_f1"]], textposition="outside"),
+                    go.Bar(name="Pearson r", x=names, y=df_e1["pearson_r"], marker_color="#3E503C", text=[f"{v:.2f}" for v in df_e1["pearson_r"]], textposition="outside"),
+                    go.Bar(name="Macro-F1", x=names, y=df_e1["macro_f1"], marker_color="#FF6F3D", text=[f"{v:.2f}" for v in df_e1["macro_f1"]], textposition="outside"),
                 ]
             )
             fig_e1.update_layout(barmode="group")
@@ -632,9 +794,9 @@ with tabs[1]:
                 d_names = [DISPLAY_LABELS.get(k, k) for k in df_dom.index]
                 fig_dom = go.Figure(
                     data=[
-                        go.Bar(name="Pearson r", x=d_names, y=df_dom["pearson_r"], marker_color="#2563eb", text=[f"{v:.2f}" for v in df_dom["pearson_r"]], textposition="outside"),
-                        go.Bar(name="Accuracy", x=d_names, y=df_dom["accuracy"], marker_color="#16a34a", text=[f"{v:.2f}" for v in df_dom["accuracy"]], textposition="outside"),
-                        go.Bar(name="Macro-F1", x=d_names, y=df_dom["macro_f1"], marker_color="#d97706", text=[f"{v:.2f}" for v in df_dom["macro_f1"]], textposition="outside"),
+                        go.Bar(name="Pearson r", x=d_names, y=df_dom["pearson_r"], marker_color="#3E503C", text=[f"{v:.2f}" for v in df_dom["pearson_r"]], textposition="outside"),
+                        go.Bar(name="Accuracy", x=d_names, y=df_dom["accuracy"], marker_color="#7F886A", text=[f"{v:.2f}" for v in df_dom["accuracy"]], textposition="outside"),
+                        go.Bar(name="Macro-F1", x=d_names, y=df_dom["macro_f1"], marker_color="#FF6F3D", text=[f"{v:.2f}" for v in df_dom["macro_f1"]], textposition="outside"),
                     ]
                 )
                 fig_dom.update_layout(barmode="group")
@@ -659,11 +821,11 @@ with tabs[1]:
         st.info("Run `python experiments/run_all_experiments.py` to populate Experiment 1 results.")
 
 # ---------------------------------------------------------------------------
-# Tab 3: Experiment 2 - Multilingual EN vs HI & v1 -> v2 Ablation
+# Tab 3: EN vs HI (Experiment 2)
 # ---------------------------------------------------------------------------
 
 with tabs[2]:
-    st.subheader("Experiment 2: Cross-Lingual Evaluation (English vs. Hindi)")
+    st.subheader("Cross-Lingual Evaluation (English vs. Hindi)")
     e2 = _load_json("experiments/results/exp2_multilingual_en_hi.json")
     v1_e2 = _load_json("experiments/results/v1_multidomain/exp2_multilingual_en_hi.json")
     v1_e1 = _load_json("experiments/results/v1_multidomain/exp1_baselines_vs_judgebert.json")
@@ -675,7 +837,7 @@ with tabs[2]:
         _render_kpi_card(c_hi, "Hindi Test Split (N = 139)", f"r = {hi_m['pearson_r']:.4f}", f"Accuracy: {hi_m['accuracy']*100:.2f}% | Macro-F1: {hi_m['macro_f1']:.4f}")
         if v1_e2:
             delta_hi = hi_m["pearson_r"] - v1_e2["hi"]["pearson_r"]
-            _render_kpi_card(c_gain, "Hindi Phonetic Transduction Gain", f"+{delta_hi:.4f} r", "[UNK] test collapse reduced: 92.4% -> 0.0%")
+            _render_kpi_card(c_gain, "Hindi Phonetic Gain", f"+{delta_hi:.4f} r", "[UNK] test collapse reduced: 92.4% -> 0.0%")
 
         if v1_e2 and v1_e1:
             v1_jb = v1_e1["overall"]["JUDGEBERT"]
@@ -702,8 +864,8 @@ with tabs[2]:
                 st.markdown("**v1 Baseline vs. v2 Final Architectural Ablation**")
                 fig_ab = go.Figure(
                     data=[
-                        go.Bar(name="v1 Baseline", x=cats, y=vals_v1, marker_color="#64748b", text=[f"{v:.2f}" for v in vals_v1], textposition="outside"),
-                        go.Bar(name="v2 Final (Phonetic + Tempered + Hybrid)", x=cats, y=vals_v2, marker_color="#2563eb", text=[f"{v:.2f}" for v in vals_v2], textposition="outside"),
+                        go.Bar(name="v1 Baseline", x=cats, y=vals_v1, marker_color="#7F886A", text=[f"{v:.2f}" for v in vals_v1], textposition="outside"),
+                        go.Bar(name="v2 Final (Phonetic + Tempered + Hybrid)", x=cats, y=vals_v2, marker_color="#3E503C", text=[f"{v:.2f}" for v in vals_v2], textposition="outside"),
                     ]
                 )
                 fig_ab.update_layout(barmode="group")
@@ -738,22 +900,22 @@ with tabs[2]:
         st.info("Experiment 2 results JSON not found.")
 
 # ---------------------------------------------------------------------------
-# Tab 4: Experiment 3 - Out-of-Domain Generalization
+# Tab 4: OOD Transfer (Experiment 3)
 # ---------------------------------------------------------------------------
 
 with tabs[3]:
-    st.subheader("Experiment 3: Out-of-Domain Generalization (Tenancy -> Consumer Law)")
+    st.subheader("Out-of-Domain Generalization (Tenancy -> Consumer Law)")
     e3 = _load_json("experiments/results/exp3_domain_generalization.json")
     e1 = _load_json("experiments/results/exp1_baselines_vs_judgebert.json")
 
     if e3:
         in_cons = e1["by_domain"]["consumer_protection"] if (e1 and "by_domain" in e1) else None
         k1, k2, k3, k4 = st.columns(4)
-        _render_kpi_card(k1, "OOD Zero-Shot Pearson r", f"{e3['pearson_r']:.4f}", "Trained strictly on Tenancy (N=958 eval)")
+        _render_kpi_card(k1, "OOD Zero-Shot Pearson r", f"{e3['pearson_r']:.4f}", "Trained strictly on Tenancy (N=958)")
         _render_kpi_card(k2, "OOD Zero-Shot Accuracy", f"{e3['accuracy']*100:.2f}%", f"Macro-F1: {e3['macro_f1']:.4f}")
-        _render_kpi_card(k3, "OOD RMSE / MAE", f"{e3['rmse']:.2f} / {e3['mae']:.2f}", "High calibration drift on unseen law")
+        _render_kpi_card(k3, "OOD RMSE / MAE", f"{e3['rmse']:.2f} / {e3['mae']:.2f}", "Calibration drift on unseen domain")
         if in_cons:
-            _render_kpi_card(k4, "Multi-Domain Consumer r", f"{in_cons['pearson_r']:.4f}", f"Accuracy: {in_cons['accuracy']*100:.2f}% (+{(in_cons['pearson_r']-e3['pearson_r']):.2f} r)")
+            _render_kpi_card(k4, "Multi-Domain Consumer r", f"{in_cons['pearson_r']:.4f}", f"Accuracy: {in_cons['accuracy']*100:.2f}%")
 
         if in_cons:
             comp_metrics = ["Pearson r", "Spearman rho", "Accuracy", "Macro-F1"]
@@ -762,8 +924,8 @@ with tabs[3]:
             st.markdown("**Zero-Shot Single-Domain Collapse vs. Multi-Domain Consumer Mastery**")
             fig_ood = go.Figure(
                 data=[
-                    go.Bar(name="Single-Domain OOD (Tenancy -> Consumer)", x=comp_metrics, y=ood_vals, marker_color="#dc2626", text=[f"{v:.2f}" for v in ood_vals], textposition="outside"),
-                    go.Bar(name="Multi-Domain JUDGEBERT (Consumer Test)", x=comp_metrics, y=multi_vals, marker_color="#16a34a", text=[f"{v:.2f}" for v in multi_vals], textposition="outside"),
+                    go.Bar(name="Single-Domain OOD (Tenancy -> Consumer)", x=comp_metrics, y=ood_vals, marker_color="#FF6F3D", text=[f"{v:.2f}" for v in ood_vals], textposition="outside"),
+                    go.Bar(name="Multi-Domain JUDGEBERT (Consumer Test)", x=comp_metrics, y=multi_vals, marker_color="#3E503C", text=[f"{v:.2f}" for v in multi_vals], textposition="outside"),
                 ]
             )
             fig_ood.update_layout(barmode="group")
@@ -790,11 +952,11 @@ with tabs[3]:
         st.info("Experiment 3 results JSON not found.")
 
 # ---------------------------------------------------------------------------
-# Tab 5: Experiment 4 - Sanity Checks
+# Tab 5: Sanity Checks (Experiment 4)
 # ---------------------------------------------------------------------------
 
 with tabs[4]:
-    st.subheader("Experiment 4: Identical and Unrelated Sanity Checks (N = 40)")
+    st.subheader("Identical and Unrelated Sanity Checks (N = 40)")
     e4 = _load_json("experiments/results/exp4_sanity_checks.json")
     v1_e4 = _load_json("experiments/results/v1_multidomain/exp4_sanity_checks.json")
 
@@ -802,10 +964,10 @@ with tabs[4]:
         ident, unrel = e4["identical"], e4["unrelated"]
         s1, s2, s3, s4 = st.columns(4)
         _render_kpi_card(s1, "JUDGEBERT Identical (GT=10)", f"{ident['judgebert_mean']:.2f} +/- {ident['judgebert_std']:.2f}", "Near-zero invariance variance")
-        _render_kpi_card(s2, "JUDGEBERT Unrelated (GT=1)", f"{unrel['judgebert_mean']:.2f} +/- {unrel['judgebert_std']:.2f}", "Cleanly below 4.0 Not-Preserved bound")
-        _render_kpi_card(s3, "SBERT Unrelated (Failure)", f"{unrel['sbert_mean']:.2f} +/- {unrel['sbert_std']:.2f}", "Falsely classifies unrelated texts as Partial")
+        _render_kpi_card(s2, "JUDGEBERT Unrelated (GT=1)", f"{unrel['judgebert_mean']:.2f} +/- {unrel['judgebert_std']:.2f}", "Below 4.0 Not-Preserved cutoff")
+        _render_kpi_card(s3, "SBERT Unrelated (Failure)", f"{unrel['sbert_mean']:.2f} +/- {unrel['sbert_std']:.2f}", "Falsely assigns Partial range")
         if v1_e4:
-            _render_kpi_card(s4, "v1 -> v2 Identical Tightening", f"{v1_e4['identical']['judgebert_mean']:.2f} -> {ident['judgebert_mean']:.2f}", f"Std cut {v1_e4['identical']['judgebert_std']:.2f} -> {ident['judgebert_std']:.2f}")
+            _render_kpi_card(s4, "v1 -> v2 Identical Gain", f"{v1_e4['identical']['judgebert_mean']:.2f} -> {ident['judgebert_mean']:.2f}", f"Std cut {v1_e4['identical']['judgebert_std']:.2f} -> {ident['judgebert_std']:.2f}")
 
         st.markdown("**Mean Predicted Score +/- StdDev on Sanity Anchors**")
         fig_san = go.Figure(
@@ -814,8 +976,8 @@ with tabs[4]:
                     name="Generic SBERT Cosine",
                     x=["Identical Pairs (GT = 10.0)", "Unrelated Pairs (GT = 1.0)"],
                     y=[ident["sbert_mean"], unrel["sbert_mean"]],
-                    error_y=dict(type="data", array=[ident["sbert_std"], unrel["sbert_std"]]),
-                    marker_color="#f59e0b",
+                    error_y=dict(type="data", array=[ident["sbert_std"], unrel["sbert_std"]], color="#262B25"),
+                    marker_color="#FF6F3D",
                     text=[f"{ident['sbert_mean']:.2f}", f"{unrel['sbert_mean']:.2f}"],
                     textposition="outside",
                 ),
@@ -823,25 +985,25 @@ with tabs[4]:
                     name="JUDGEBERT (Ours v2)",
                     x=["Identical Pairs (GT = 10.0)", "Unrelated Pairs (GT = 1.0)"],
                     y=[ident["judgebert_mean"], unrel["judgebert_mean"]],
-                    error_y=dict(type="data", array=[ident["judgebert_std"], unrel["judgebert_std"]]),
-                    marker_color="#2563eb",
+                    error_y=dict(type="data", array=[ident["judgebert_std"], unrel["judgebert_std"]], color="#262B25"),
+                    marker_color="#3E503C",
                     text=[f"{ident['judgebert_mean']:.2f}", f"{unrel['judgebert_mean']:.2f}"],
                     textposition="outside",
                 ),
             ]
         )
-        fig_san.add_hline(y=4.0, line_dash="dot", line_color="#ef4444", annotation_text="Cutoff 4.0", annotation_position="top left")
+        fig_san.add_hline(y=4.0, line_dash="dot", line_color="#DC2626", annotation_text="Cutoff 4.0", annotation_position="top left", annotation_font_color="#991B1B")
         fig_san.update_layout(barmode="group")
         st.plotly_chart(_style_plotly(fig_san, height=340, y_title="LMP Score (1-10)", y_range=[0, 11.8]), use_container_width=True)
     else:
         st.info("Experiment 4 results JSON not found.")
 
 # ---------------------------------------------------------------------------
-# Tab 6: Experiment 5 - Interactive Case Explorer (16 Cases)
+# Tab 6: Case Study (Experiment 5 - 16 Hard Cases)
 # ---------------------------------------------------------------------------
 
 with tabs[5]:
-    st.subheader("Experiment 5: Qualitative Error Analysis Across 16 Legally Difficult Cases")
+    st.subheader("Qualitative Error Analysis Across 16 Legally Difficult Cases")
     csv_path = "experiments/results/exp5_error_analysis_15cases.csv"
     if os.path.exists(csv_path):
         df_e5 = pd.read_csv(csv_path, encoding="utf-8")
